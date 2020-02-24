@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.model.API;
-import org.wso2.carbon.apimgt.api.model.ApiTypeWrapper;
 import org.wso2.carbon.apimgt.api.model.Application;
 import org.wso2.carbon.apimgt.api.model.URITemplate;
 import org.wso2.carbon.apimgt.impl.APIConstants;
@@ -64,12 +63,11 @@ public class RecommenderDetailsExtractor implements RecommenderEventPublisher {
     private int applicationId;
     private API api;
     private String userName;
-    private String searchQuery;
+    private String userActivity;
     private String tenantDomain;
     private String requestTenantDomain;
     private String publishingDetailType;
     private Application application;
-    private ApiTypeWrapper clickedApi;
 
     public RecommenderDetailsExtractor(API api, String tenantDomain) {
 
@@ -108,19 +106,11 @@ public class RecommenderDetailsExtractor implements RecommenderEventPublisher {
         this.requestTenantDomain = requestedTenant;
     }
 
-    public RecommenderDetailsExtractor(ApiTypeWrapper clickedApi, String userName, String requestedTenant) {
+    public RecommenderDetailsExtractor(String userActivity, String userName, String requestedTenant,
+                                       String publishingDetailType) {
 
-        this.publishingDetailType = APIConstants.ADD_USER_CLICKED_API;
-        this.clickedApi = clickedApi;
-        this.userName = userName;
-        this.tenantDomain = MultitenantUtils.getTenantDomain(userName);
-        this.requestTenantDomain = requestedTenant;
-    }
-
-    public RecommenderDetailsExtractor(String searchQuery, String userName, String requestedTenant) {
-
-        this.publishingDetailType = APIConstants.ADD_USER_SEARCHED_QUERY;
-        this.searchQuery = searchQuery;
+        this.publishingDetailType = publishingDetailType;
+        this.userActivity = userActivity;
         this.userName = userName;
         this.tenantDomain = MultitenantUtils.getTenantDomain(userName);
         this.requestTenantDomain = requestedTenant;
@@ -142,9 +132,9 @@ public class RecommenderDetailsExtractor implements RecommenderEventPublisher {
                 } else if (APIConstants.DELETE_APPLICATION.equals(publishingDetailType)) {
                     publishDeletedApplication(applicationId);
                 } else if (APIConstants.ADD_USER_CLICKED_API.equals(publishingDetailType)) {
-                    publishClickedApi(clickedApi, userName);
+                    publishClickedApi(userActivity, userName);
                 } else if (APIConstants.ADD_USER_SEARCHED_QUERY.equals(publishingDetailType)) {
-                    publishSearchQueries(searchQuery, userName);
+                    publishSearchQueries(userActivity, userName);
                 }
 
                 if (!APIConstants.ADD_API.equals(publishingDetailType)) {
@@ -202,7 +192,7 @@ public class RecommenderDetailsExtractor implements RecommenderEventPublisher {
             publishEvent(payload.toString());
         } else {
             JSONObject obj = new JSONObject();
-            obj.put("api_name", apiName);
+            obj.put("api_id", apiId);
             obj.put("tenant", tenantDomain);
 
             JSONObject payload = new JSONObject();
@@ -244,14 +234,13 @@ public class RecommenderDetailsExtractor implements RecommenderEventPublisher {
     }
 
     @Override
-    public void publishClickedApi(ApiTypeWrapper api, String userName) {
+    public void publishClickedApi(String apiID, String userName) {
 
         if (userName != APIConstants.WSO2_ANONYMOUS_USER) {
             String userID = getUserId(userName);
-            String apiName = api.getName();
             JSONObject obj = new JSONObject();
             obj.put("user", userID);
-            obj.put("api_name", apiName);
+            obj.put("api_id", apiID);
 
             JSONObject payload = new JSONObject();
             payload.put(APIConstants.ACTION_STRING, APIConstants.ADD_USER_CLICKED_API);
@@ -263,7 +252,7 @@ public class RecommenderDetailsExtractor implements RecommenderEventPublisher {
     @Override
     public void publishSearchQueries(String query, String username) {
 
-        String userID = getUserId(userName);
+        String userID = getUserId(username);
         query = query.split("&", 2)[0];
         JSONObject obj = new JSONObject();
         obj.put("user", userID);

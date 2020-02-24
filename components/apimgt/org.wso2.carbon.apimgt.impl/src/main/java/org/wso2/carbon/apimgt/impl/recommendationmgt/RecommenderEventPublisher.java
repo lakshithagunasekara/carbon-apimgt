@@ -33,7 +33,7 @@ public interface RecommenderEventPublisher extends Runnable {
 
     void publishDeletedApplication(int appId);
 
-    void publishClickedApi(ApiTypeWrapper api, String userName);
+    void publishClickedApi(String api, String userName);
 
     void publishSearchQueries(String query, String username);
 }
