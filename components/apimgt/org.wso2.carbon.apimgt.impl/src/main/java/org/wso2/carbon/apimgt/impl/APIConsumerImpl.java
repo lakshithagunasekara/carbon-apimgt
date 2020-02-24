@@ -5748,17 +5748,15 @@ public class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
 
     public void publishSearchQuery(String query, String username) {
         if (recommendationEnvironment != null) {
-            RecommenderEventPublisher extractor = new RecommenderDetailsExtractor(query, username, requestedTenant,
-                    APIConstants.ADD_USER_SEARCHED_QUERY);
+            RecommenderEventPublisher extractor = new RecommenderDetailsExtractor(query, username, requestedTenant);
             Thread recommendationThread = new Thread(extractor);
             recommendationThread.start();
         }
     }
 
-    public void publishClickedAPI(String clickedApiID, String username) {
+    public void publishClickedAPI(ApiTypeWrapper clickedApi, String username) {
         if (recommendationEnvironment != null) {
-            RecommenderEventPublisher extractor = new RecommenderDetailsExtractor(clickedApiID, username,
-                    requestedTenant, APIConstants.ADD_USER_CLICKED_API);
+            RecommenderEventPublisher extractor = new RecommenderDetailsExtractor(clickedApi, username, requestedTenant);
             Thread recommendationThread = new Thread(extractor);
             recommendationThread.start();
         }
