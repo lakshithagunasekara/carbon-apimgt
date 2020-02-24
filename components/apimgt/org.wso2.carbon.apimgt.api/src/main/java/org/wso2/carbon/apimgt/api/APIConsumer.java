@@ -988,11 +988,11 @@ public interface APIConsumer extends APIManager {
     /**
      * Publish the clicked APIs for the use of API recommendation system.
      *
-     * @param api API clicked by the user
+     * @param apiID API clicked by the user
      * @param username Name of the user who clicked the API
      * @throws APIManagementException If an error occurs while publishing clicked API
      */
-    void publishClickedAPI(ApiTypeWrapper api, String username) throws APIManagementException;
+    void publishClickedAPI(String apiID, String username) throws APIManagementException;
 
     /**
      * Checks whether the API recommendation feature is enabled.
