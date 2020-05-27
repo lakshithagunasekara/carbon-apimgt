@@ -3170,6 +3170,12 @@ public class SQLConstants {
 
     public static final String ADD_USER_ID = "INSERT INTO AM_USER (USER_ID, USER_NAME) VALUES (?,?)";
 
+    public static final String ADD_API_BLOB = "INSERT INTO AM_API_BLOB (API_ID, API_NAME, LABEL, ARTIFACTS) VALUES " +
+            "(?,?,?,?) ON DUPLICATE KEY UPDATE ARTIFACTS = ?";
+
+    public static final String GET_API_BLOB = "SELECT ARTIFACTS FROM AM_API_BLOB WHERE API_ID =? AND API_NAME=? AND " +
+            "LABEL=?";
+
     /** Throttle related constants**/
 
     public static class ThrottleSQLConstants{
