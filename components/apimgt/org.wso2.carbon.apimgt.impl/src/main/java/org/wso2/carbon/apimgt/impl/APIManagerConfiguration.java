@@ -35,6 +35,7 @@ import org.wso2.carbon.apimgt.impl.dto.ClaimMappingDto;
 import org.wso2.carbon.apimgt.impl.dto.Environment;
 import org.wso2.carbon.apimgt.impl.dto.JWKSConfigurationDTO;
 import org.wso2.carbon.apimgt.impl.dto.JWTConfigurationDto;
+import org.wso2.carbon.apimgt.impl.dto.GatewayArtifactSynchronizerProperties;
 import org.wso2.carbon.apimgt.impl.dto.ThrottleProperties;
 import org.wso2.carbon.apimgt.impl.dto.TokenIssuerDto;
 import org.wso2.carbon.apimgt.impl.dto.WorkflowProperties;
@@ -130,6 +131,8 @@ public class APIManagerConfiguration {
     public Map<String, Map<String, String>> getLoginConfiguration() {
         return loginConfiguration;
     }
+
+    private GatewayArtifactSynchronizerProperties gatewayArtifactSynchronizerProperties = new GatewayArtifactSynchronizerProperties();;
 
     /**
      * Returns the configuration of the Identity Provider.
@@ -457,6 +460,8 @@ public class APIManagerConfiguration {
                 setRecommendationConfigurations(element);
             } else if (APIConstants.GlobalCacheInvalidation.GLOBAL_CACHE_INVALIDATION.equals(localName)) {
                 setGlobalCacheInvalidationConfiguration(element);
+            } else if (APIConstants.GatewayArtifactSynchronizer.SYNC_GATEWAY_ARTIFACTS_CONFIG.equals(localName)) {
+                setGatewayArtifactsSynchronizerConfig(element);
             }
             readChildElements(element, nameStack);
             nameStack.pop();
@@ -1438,5 +1443,41 @@ public class APIManagerConfiguration {
     public JWTConfigurationDto getJwtConfigurationDto() {
 
         return jwtConfigurationDto;
+    }
+
+    private void setGatewayArtifactsSynchronizerConfig (OMElement omElement){
+
+        gatewayArtifactSynchronizerProperties.setSyncArtifacts(true);
+        OMElement publisherElement = omElement.getFirstChildWithName(
+                new QName(APIConstants.GatewayArtifactSynchronizer.PUBLISHER_CONFIG));
+        if (publisherElement != null) {
+            String publisher = publisherElement.getText();
+            gatewayArtifactSynchronizerProperties.setPublisher(publisher);
+        } else {
+            log.debug("GatewayArtifactsSynchronizer Publisher Element is not set. Set to default DB Publisher");
+        }
+
+        OMElement retrieverElement = omElement.getFirstChildWithName(
+                new QName(APIConstants.GatewayArtifactSynchronizer.RETRIEVER_CONFIG));
+        if (retrieverElement != null) {
+            String deployer = retrieverElement.getText();
+            gatewayArtifactSynchronizerProperties.setRetriever(deployer);
+        } else {
+            log.debug("GatewayArtifactsSynchronizer Deployer Element is not set. Set to default DB Deployer");
+        }
+
+        OMElement skipLocalCopyElement = omElement
+                .getFirstChildWithName(new QName(APIConstants.GatewayArtifactSynchronizer.SKIP_LOCAL_COPY_CONFIG));
+        if (skipLocalCopyElement != null) {
+            gatewayArtifactSynchronizerProperties.setSkipLocalCopy(JavaUtils.isTrueExplicitly(skipLocalCopyElement
+                    .getText()));
+        } else {
+            log.debug("GatewayArtifactsSynchronizer SkipLocalCopy Element is not set. Set to default false");
+        }
+    }
+
+    public GatewayArtifactSynchronizerProperties getGatewayArtifactSynchronizerProperties() {
+
+        return gatewayArtifactSynchronizerProperties;
     }
 }
