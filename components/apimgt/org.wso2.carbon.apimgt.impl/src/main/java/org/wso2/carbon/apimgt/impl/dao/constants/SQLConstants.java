@@ -3101,6 +3101,12 @@ public class SQLConstants {
             "SELECT CONSUMER_KEY FROM AM_APPLICATION_KEY_MAPPING WHERE APPLICATION_ID = ? AND KEY_TYPE = ? AND " +
                     "KEY_MANAGER = ?";
 
+    public static final String ADD_API_BLOB = "INSERT INTO AM_API_BLOB (API_ID, API_NAME, LABEL, ARTIFACTS) VALUES " +
+            "(?,?,?,?) ON DUPLICATE KEY UPDATE ARTIFACTS = ?";
+
+    public static final String GET_API_BLOB = "SELECT ARTIFACTS FROM AM_API_BLOB WHERE API_ID =? AND API_NAME=? AND " +
+            "LABEL=?";
+
     /** Throttle related constants**/
 
     public static class ThrottleSQLConstants{
