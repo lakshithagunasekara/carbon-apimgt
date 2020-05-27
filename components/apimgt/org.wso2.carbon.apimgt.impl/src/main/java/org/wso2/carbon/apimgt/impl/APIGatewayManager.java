@@ -39,6 +39,7 @@ import org.wso2.carbon.apimgt.impl.certificatemgt.exceptions.CertificateManageme
 import org.wso2.carbon.apimgt.impl.dao.CertificateMgtDAO;
 import org.wso2.carbon.apimgt.impl.definitions.GraphQLSchemaDefinition;
 import org.wso2.carbon.apimgt.impl.dto.Environment;
+import org.wso2.carbon.apimgt.impl.dto.GatewayArtifactSynchronizerProperties;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.recommendationmgt.RecommendationEnvironment;
 import org.wso2.carbon.apimgt.impl.recommendationmgt.RecommenderDetailsExtractor;
@@ -66,6 +67,7 @@ public class APIGatewayManager {
 
     private Map<String, Environment> environments;
     private RecommendationEnvironment recommendationEnvironment;
+    private GatewayArtifactSynchronizerProperties gatewayArtifactSynchronizerProperties;
 
 	private boolean debugEnabled = log.isDebugEnabled();
 
@@ -81,6 +83,7 @@ public class APIGatewayManager {
                 .getAPIManagerConfiguration();
         environments = config.getApiGatewayEnvironments();
         this.recommendationEnvironment = config.getApiRecommendationEnvironment();
+        this.gatewayArtifactSynchronizerProperties = config.getGatewayArtifactSynchronizerProperties();
 
     }
 
@@ -128,6 +131,7 @@ public class APIGatewayManager {
             gatewayAPIDTO.setApiId(api.getUUID());
             gatewayAPIDTO.setTenantDomain(tenantDomain);
             gatewayAPIDTO.setOverride(true);
+            gatewayAPIDTO.setEnvironment(environmentName);
 
             try {
                 String definition;
@@ -216,8 +220,12 @@ public class APIGatewayManager {
                         gatewayAPIDTO.setDefaultAPIDefinition(defaultAPIConfig);
                     }
                     setSecureVaultPropertyToBeAdded(api, gatewayAPIDTO);
+                    if (gatewayArtifactSynchronizerProperties.isSyncArtifacts()) {
+                        ServiceReferenceHolder.getInstance().getArtifactPublisher().publishArtifacts(gatewayAPIDTO);
+                    } else {
+                        client.deployAPI(gatewayAPIDTO);
+                    }
 
-                    client.deployAPI(gatewayAPIDTO);
                 } else {
                     deployWebsocketAPI(api, client);
                 }
