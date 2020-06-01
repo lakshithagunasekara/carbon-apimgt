@@ -189,11 +189,6 @@ public class APIManagerComponent {
             bundleContext.registerService(Notifier.class.getName(), new ApplicationRegistrationNotifier(), null);
             bundleContext.registerService(Notifier.class.getName(),new PolicyNotifier(), null);
 
-            ArtifactPublisher artifactPublisher = new DBPublisher();
-            ArtifactRetriever artifactRetriever = new DBRetriever();
-            bundleContext.registerService(ArtifactPublisher.class.getName(), artifactPublisher, null);
-            bundleContext.registerService(ArtifactRetriever.class.getName(), artifactRetriever, null);
-
             APIManagerConfigurationServiceImpl configurationService = new APIManagerConfigurationServiceImpl(configuration);
             ServiceReferenceHolder.getInstance().setAPIManagerConfigurationService(configurationService);
             registration = componentContext.getBundleContext().registerService(APIManagerConfigurationService.class.getName(), configurationService, null);
@@ -296,6 +291,10 @@ public class APIManagerComponent {
             //Initialize Recommendation wso2event output publisher
             configureRecommendationEventPublisherProperties();
             setupAccessTokenGenerator();
+
+            bundleContext.registerService(ArtifactPublisher.class.getName(), new DBPublisher(), null);
+            bundleContext.registerService(ArtifactRetriever.class.getName(), new DBRetriever(), null);
+
         } catch (APIManagementException e) {
             log.error("Error while initializing the API manager component", e);
         } catch (APIManagerDatabaseException e) {
@@ -684,48 +683,6 @@ public class APIManagerComponent {
         this.tenantRegistryLoader = null;
     }
 
-    @Reference(
-            name = "gateway.artifact.publisher",
-            service = ArtifactPublisher.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetArtifactPublisher")
-    protected void setArtifactPublisher(ArtifactPublisher artifactPublisher) {
-
-        GatewayArtifactSynchronizerProperties gatewayArtifactSynchronizerProperties =
-                ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService().getAPIManagerConfiguration()
-                        .getGatewayArtifactSynchronizerProperties();
-
-        if (gatewayArtifactSynchronizerProperties.getPublisher().equals(artifactPublisher.getClass().getName())) {
-            ServiceReferenceHolder.getInstance().setArtifactPublisher(artifactPublisher);
-        }
-    }
-
-    protected void unsetArtifactPublisher(ArtifactPublisher artifactPublisher) {
-        ServiceReferenceHolder.getInstance().setArtifactPublisher(null);
-    }
-
-    @Reference(
-            name = "gateway.artifact.retriever",
-            service = ArtifactRetriever.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetArtifactRetriever")
-    protected void setArtifactRetriever(ArtifactRetriever artifactRetriever) {
-
-        GatewayArtifactSynchronizerProperties gatewayArtifactSynchronizerProperties =
-                ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService().getAPIManagerConfiguration()
-                        .getGatewayArtifactSynchronizerProperties();
-
-        if (gatewayArtifactSynchronizerProperties.getRetriever().equals(artifactRetriever.getClass().getName())) {
-            ServiceReferenceHolder.getInstance().setArtifactRetriever(artifactRetriever);
-        }
-    }
-
-    protected void unsetArtifactRetriever(ArtifactRetriever artifactRetriever) {
-        ServiceReferenceHolder.getInstance().setArtifactRetriever(null);
-    }
-
     public static TenantRegistryLoader getTenantRegistryLoader() {
         return tenantRegistryLoader;
     }
@@ -819,6 +776,49 @@ public class APIManagerComponent {
 
         ServiceReferenceHolder.getInstance().getNotifiersMap().remove(notifier.getType());
     }
+
+    @Reference(
+            name = "gateway.artifact.publisher",
+            service = ArtifactPublisher.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetArtifactPublisher")
+    protected void setArtifactPublisher(ArtifactPublisher artifactPublisher) {
+
+        GatewayArtifactSynchronizerProperties gatewayArtifactSynchronizerProperties =
+                ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService().getAPIManagerConfiguration()
+                        .getGatewayArtifactSynchronizerProperties();
+
+        if (gatewayArtifactSynchronizerProperties.getPublisher().equals(artifactPublisher.getClass().getName())) {
+            ServiceReferenceHolder.getInstance().setArtifactPublisher(artifactPublisher);
+        }
+    }
+
+    protected void unsetArtifactPublisher(ArtifactPublisher artifactPublisher) {
+        ServiceReferenceHolder.getInstance().setArtifactPublisher(null);
+    }
+
+    @Reference(
+            name = "gateway.artifact.retriever",
+            service = ArtifactRetriever.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetArtifactRetriever")
+    protected void setArtifactRetriever(ArtifactRetriever artifactRetriever) {
+
+        GatewayArtifactSynchronizerProperties gatewayArtifactSynchronizerProperties =
+                ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService().getAPIManagerConfiguration()
+                        .getGatewayArtifactSynchronizerProperties();
+
+        if (gatewayArtifactSynchronizerProperties.getRetriever().equals(artifactRetriever.getClass().getName())) {
+            ServiceReferenceHolder.getInstance().setArtifactRetriever(artifactRetriever);
+        }
+    }
+
+    protected void unsetArtifactRetriever(ArtifactRetriever artifactRetriever) {
+        ServiceReferenceHolder.getInstance().setArtifactRetriever(null);
+    }
+
 
     /**
      * Method to configure wso2event type event adapter to be used for event notification.
