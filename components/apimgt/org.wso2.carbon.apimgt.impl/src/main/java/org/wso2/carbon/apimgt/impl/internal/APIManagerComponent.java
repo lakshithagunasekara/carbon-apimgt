@@ -50,6 +50,7 @@ import org.wso2.carbon.apimgt.impl.dto.ThrottleProperties;
 import org.wso2.carbon.apimgt.impl.factory.KeyManagerHolder;
 import org.wso2.carbon.apimgt.impl.factory.SQLConstantManagerFactory;
 import org.wso2.carbon.apimgt.impl.handlers.UserPostSelfRegistrationHandler;
+import org.wso2.carbon.apimgt.impl.notifier.GatewayApisNotifier;
 import org.wso2.carbon.apimgt.impl.notifier.Notifier;
 import org.wso2.carbon.apimgt.impl.notifier.SubscriptionsNotifier;
 import org.wso2.carbon.apimgt.impl.notifier.ApisNotifier;
@@ -185,9 +186,10 @@ public class APIManagerComponent {
             //Registering Notifiers
             bundleContext.registerService(Notifier.class.getName(), new SubscriptionsNotifier(), null);
             bundleContext.registerService(Notifier.class.getName(), new ApisNotifier(), null);
-            bundleContext.registerService(Notifier.class.getName(),  new ApplicationNotifier(), null);
+            bundleContext.registerService(Notifier.class.getName(), new ApplicationNotifier(), null);
             bundleContext.registerService(Notifier.class.getName(), new ApplicationRegistrationNotifier(), null);
-            bundleContext.registerService(Notifier.class.getName(),new PolicyNotifier(), null);
+            bundleContext.registerService(Notifier.class.getName(), new PolicyNotifier(), null);
+            bundleContext.registerService(Notifier.class.getName(), new GatewayApisNotifier(), null);
 
             APIManagerConfigurationServiceImpl configurationService = new APIManagerConfigurationServiceImpl(configuration);
             ServiceReferenceHolder.getInstance().setAPIManagerConfigurationService(configurationService);
