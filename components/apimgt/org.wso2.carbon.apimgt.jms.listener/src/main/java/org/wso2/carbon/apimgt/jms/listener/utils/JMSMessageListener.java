@@ -382,10 +382,15 @@ public class JMSMessageListener implements MessageListener {
 
         if (APIConstants.EventType.PUBLISH_API_IN_GATEWAY.name().equals(eventType)) {
             APIGatewayEvent gatewayEvent = new Gson().fromJson(new String(eventDecoded), APIGatewayEvent.class);
+            if (ServiceReferenceHolder.getInstance().getAPIMConfiguration().getGatewayArtifactSynchronizerProperties()
+                    .getGatewayLabel().equals(gatewayEvent.getGatewayLabel())
+                    || APIConstants.GatewayArtifactSynchronizer.DEFAULT_GATEWAY_LABEL.equals(gatewayEvent.getGatewayLabel())) {
 
-            if (APIConstants.GatewayArtifactSynchronizer.PUBLISH_EVENT_LABEL.equals(gatewayEvent.getEventLabel())){
-                APIGatewayManager gatewayManager = APIGatewayManager.getInstance();
-                gatewayManager.deployAPI(gatewayEvent.getApiName(),gatewayEvent.getGatewayLabel(),gatewayEvent.getApiId());
+                if (APIConstants.GatewayArtifactSynchronizer.PUBLISH_EVENT_LABEL.equals(gatewayEvent.getEventLabel())) {
+                    APIGatewayManager gatewayManager = APIGatewayManager.getInstance();
+                    gatewayManager.deployAPI(gatewayEvent.getApiName(), gatewayEvent.getGatewayLabel(),
+                            gatewayEvent.getApiId());
+                }
             }
         }
     }
