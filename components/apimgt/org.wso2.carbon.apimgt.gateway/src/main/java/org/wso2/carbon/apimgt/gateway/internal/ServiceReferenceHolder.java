@@ -25,6 +25,7 @@ import org.wso2.carbon.apimgt.gateway.throttling.publisher.ThrottleDataPublisher
 import org.wso2.carbon.apimgt.impl.APIManagerConfiguration;
 import org.wso2.carbon.apimgt.impl.APIManagerConfigurationService;
 import org.wso2.carbon.apimgt.impl.dto.ThrottleProperties;
+import org.wso2.carbon.apimgt.impl.gatewayartifactsynchronizer.ArtifactRetriever;
 import org.wso2.carbon.apimgt.tracing.TracingService;
 import org.wso2.carbon.apimgt.tracing.TracingTracer;
 import org.wso2.carbon.base.api.ServerConfigurationService;
@@ -66,6 +67,7 @@ public class ServiceReferenceHolder {
     public ThrottleDataHolder getThrottleDataHolder() {
         return throttleDataHolder;
     }
+    private ArtifactRetriever artifactRetriever;
 
     private ServiceReferenceHolder() {
 
@@ -219,5 +221,15 @@ public class ServiceReferenceHolder {
     public void setTracer(TracingTracer tracer) {
 
         this.tracer = tracer;
+    }
+
+    public ArtifactRetriever getArtifactRetriever() {
+
+        return artifactRetriever;
+    }
+
+    public void setArtifactRetriever(ArtifactRetriever artifactRetriever) {
+
+        this.artifactRetriever = artifactRetriever;
     }
 }

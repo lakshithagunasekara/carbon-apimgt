@@ -30,6 +30,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.wso2.carbon.apimgt.api.dto.ResourceCacheInvalidationDto;
 import org.wso2.carbon.apimgt.api.gateway.GatewayAPIDTO;
+import org.wso2.carbon.apimgt.gateway.APIDeployer;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.APIGatewayManager;
 import org.wso2.carbon.apimgt.impl.notifier.events.APIGatewayEvent;
@@ -66,6 +67,7 @@ public class JMSMessageListener implements MessageListener {
     private Pattern resourcePattern = Pattern.compile("/.*/(.*)/\\1(.*)?:[A-Z]{0,5}_(condition_(\\d*)|default)");
     public static final int RESOURCE_PATTERN_GROUPS = 4;
     public static final int RESOURCE_PATTERN_CONDITION_INDEX = 3;
+    private APIDeployer apiDeployer = new APIDeployer();
 
     public void onMessage(Message message) {
 
@@ -386,13 +388,11 @@ public class JMSMessageListener implements MessageListener {
                     .getGatewayLabel().equals(gatewayEvent.getGatewayLabel())
                     || APIConstants.GatewayArtifactSynchronizer.DEFAULT_GATEWAY_LABEL.equals(gatewayEvent.getGatewayLabel())) {
 
-                APIGatewayManager gatewayManager = APIGatewayManager.getInstance();
-
                 if (APIConstants.GatewayArtifactSynchronizer.PUBLISH_EVENT_LABEL.equals(gatewayEvent.getEventLabel())) {
-                    gatewayManager.deployAPI(gatewayEvent.getApiName(), gatewayEvent.getGatewayLabel(),
+                    apiDeployer.deployAPI(gatewayEvent.getApiName(), gatewayEvent.getGatewayLabel(),
                             gatewayEvent.getApiId());
                 } else if (APIConstants.GatewayArtifactSynchronizer.REMOVE_EVENT_LABEL.equals(gatewayEvent.getEventLabel())) {
-                    gatewayManager.unDeployAPI(gatewayEvent.getApiName(), gatewayEvent.getGatewayLabel(),
+                    apiDeployer.unDeployAPI(gatewayEvent.getApiName(), gatewayEvent.getGatewayLabel(),
                             gatewayEvent.getApiId());
                 }
             }
