@@ -3101,16 +3101,15 @@ public class SQLConstants {
             "SELECT CONSUMER_KEY FROM AM_APPLICATION_KEY_MAPPING WHERE APPLICATION_ID = ? AND KEY_TYPE = ? AND " +
                     "KEY_MANAGER = ?";
 
-    public static final String ADD_API_BLOB = "INSERT INTO AM_API_BLOB (API_ID, API_NAME, LABEL, ARTIFACTS) VALUES " +
-            "(?,?,?,?) ";
+    public static final String ADD_API_ARTIFACT = "INSERT INTO AM_API_ARTIFACTS (API_ID, API_NAME, API_VERSION, " +
+            "TENANT_DOMAIN, API_PROVIDER, GATEWAY_LABEL, ARTIFACTS) VALUES (?,?,?,?,?,?,?)";
 
-    public static final String UPDATE_API_BLOB = "UPDATE AM_API_BLOB SET ARTIFACTS = ? WHERE (API_ID = ?)" +
-            "AND (LABEL = ?)";
+    public static final String UPDATE_API_ARTIFACT = "UPDATE AM_API_ARTIFACTS SET ARTIFACTS = ? WHERE (API_ID = ?)" +
+            "AND (GATEWAY_LABEL = ?)";
 
-    public static final String DELETE_API_BLOB = "DELETE FROM AM_API_BLOB WHERE API_ID = ? AND LABEL = ? ";
+    public static final String DELETE_API_ARTIFACT = "DELETE FROM AM_API_ARTIFACTS WHERE API_ID = ? AND GATEWAY_LABEL = ? ";
 
-    public static final String GET_API_BLOB = "SELECT ARTIFACTS FROM AM_API_BLOB WHERE API_ID =? AND API_NAME=? AND " +
-            "LABEL=?";
+    public static final String GET_API_ARTIFACT = "SELECT ARTIFACTS FROM AM_API_ARTIFACTS WHERE API_ID =? AND GATEWAY_LABEL =?";
 
     /** Throttle related constants**/
 
