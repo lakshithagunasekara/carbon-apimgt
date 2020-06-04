@@ -20,7 +20,6 @@ package org.wso2.carbon.apimgt.jms.listener.utils;
 
 import com.google.gson.Gson;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,17 +28,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.wso2.carbon.apimgt.api.dto.ResourceCacheInvalidationDto;
-import org.wso2.carbon.apimgt.api.gateway.GatewayAPIDTO;
-import org.wso2.carbon.apimgt.gateway.APIDeployer;
+import org.wso2.carbon.apimgt.gateway.InMemoryAPIDeployer;
 import org.wso2.carbon.apimgt.impl.APIConstants;
-import org.wso2.carbon.apimgt.impl.APIGatewayManager;
 import org.wso2.carbon.apimgt.impl.notifier.events.APIGatewayEvent;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.jms.listener.APICondition;
 import org.wso2.carbon.apimgt.jms.listener.internal.ServiceReferenceHolder;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -67,7 +62,7 @@ public class JMSMessageListener implements MessageListener {
     private Pattern resourcePattern = Pattern.compile("/.*/(.*)/\\1(.*)?:[A-Z]{0,5}_(condition_(\\d*)|default)");
     public static final int RESOURCE_PATTERN_GROUPS = 4;
     public static final int RESOURCE_PATTERN_CONDITION_INDEX = 3;
-    private APIDeployer apiDeployer = new APIDeployer();
+    private InMemoryAPIDeployer inMemoryApiDeployer = new InMemoryAPIDeployer();
 
     public void onMessage(Message message) {
 
@@ -385,14 +380,14 @@ public class JMSMessageListener implements MessageListener {
         if (APIConstants.EventType.PUBLISH_API_IN_GATEWAY.name().equals(eventType)) {
             APIGatewayEvent gatewayEvent = new Gson().fromJson(new String(eventDecoded), APIGatewayEvent.class);
             if (ServiceReferenceHolder.getInstance().getAPIMConfiguration().getGatewayArtifactSynchronizerProperties()
-                    .getGatewayLabel().equals(gatewayEvent.getGatewayLabel())
-                    || APIConstants.GatewayArtifactSynchronizer.DEFAULT_GATEWAY_LABEL.equals(gatewayEvent.getGatewayLabel())) {
+                    .getGatewayLabels().contains(gatewayEvent.getGatewayLabel())) {
 
                 if (APIConstants.GatewayArtifactSynchronizer.PUBLISH_EVENT_LABEL.equals(gatewayEvent.getEventLabel())) {
-                    apiDeployer.deployAPI(gatewayEvent.getApiName(), gatewayEvent.getGatewayLabel(),
+                    inMemoryApiDeployer.deployAPI(gatewayEvent.getApiName(), gatewayEvent.getGatewayLabel(),
                             gatewayEvent.getApiId());
-                } else if (APIConstants.GatewayArtifactSynchronizer.REMOVE_EVENT_LABEL.equals(gatewayEvent.getEventLabel())) {
-                    apiDeployer.unDeployAPI(gatewayEvent.getApiName(), gatewayEvent.getGatewayLabel(),
+                } else if (APIConstants.GatewayArtifactSynchronizer.REMOVE_EVENT_LABEL
+                        .equals(gatewayEvent.getEventLabel())) {
+                    inMemoryApiDeployer.unDeployAPI(gatewayEvent.getApiName(), gatewayEvent.getGatewayLabel(),
                             gatewayEvent.getApiId());
                 }
             }
