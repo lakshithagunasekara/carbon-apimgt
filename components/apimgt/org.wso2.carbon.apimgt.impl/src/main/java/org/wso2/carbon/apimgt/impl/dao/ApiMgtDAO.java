@@ -15364,4 +15364,18 @@ public class ApiMgtDAO {
         return labels;
     }
 
+    public boolean isAPIPublished (String APIId) throws APIManagementException {
+        boolean status = false;
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQLConstants.CHECK_API_PUBLISHED_STATUS)) {
+            statement.setString(1, APIId);
+            statement.setString(2, APIConstants.GatewayArtifactSynchronizer.ARTIFACT_STATUS_PUBLISH);
+            ResultSet rs = statement.executeQuery();
+            status = rs.next();
+        } catch (SQLException e) {
+            handleException("Failed to get artifacts of API with ID " + APIId, e);
+        }
+        return status;
+    }
+
 }
