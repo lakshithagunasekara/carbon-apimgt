@@ -135,7 +135,7 @@ public class APIGatewayManager {
                     continue;
                 }
                 failedEnvironmentsMap = publishAPIToGatewayEnvironment(environment, api, builder, tenantDomain,
-                        failedEnvironmentsMap, false);
+                        failedEnvironmentsMap);
             }
         }
 
@@ -143,7 +143,7 @@ public class APIGatewayManager {
             for (Label label : api.getGatewayLabels()) {
                 Environment environment = getEnvironmentFromLabel(label);
                 failedEnvironmentsMap = publishAPIToGatewayEnvironment(environment, api, builder, tenantDomain,
-                        failedEnvironmentsMap, true);
+                        failedEnvironmentsMap);
             }
         }
         return failedEnvironmentsMap;
@@ -162,8 +162,7 @@ public class APIGatewayManager {
     private Map<String, String> publishAPIToGatewayEnvironment(Environment environment, API api,
                                                                APITemplateBuilder builder,
                                                                String tenantDomain,
-                                                               Map<String, String> failedEnvironmentsMap,
-                                                               boolean gatewayFromLabel) {
+                                                               Map<String, String> failedEnvironmentsMap) {
 
         long startTime;
         long endTime;
@@ -178,7 +177,7 @@ public class APIGatewayManager {
                 if (gatewayAPIDTO == null) {
                     return null;
                 } else {
-                    if (gatewayArtifactSynchronizerProperties.isPublishDirectlyToGateway()
+                    if (gatewayArtifactSynchronizerProperties.isPublishDirectlyToGatewayEnabled()
                             && environment.getServerURL() != null) {
                         client = new APIGatewayAdminClient(environment);
                         client.deployAPI(gatewayAPIDTO);
@@ -566,7 +565,7 @@ public class APIGatewayManager {
                     setSecureVaultProperty(client, api, tenantDomain);
                 }
 
-                if (gatewayArtifactSynchronizerProperties.isPublishDirectlyToGateway()) {
+                if (gatewayArtifactSynchronizerProperties.isPublishDirectlyToGatewayEnabled()) {
                     client.deployAPI(productAPIDto);
                 }
 
@@ -672,7 +671,7 @@ public class APIGatewayManager {
                     continue;
                 }
                 failedEnvironmentsMap = removeAPIFromGatewayEnvironment(api, tenantDomain, environment,
-                        failedEnvironmentsMap, false);
+                        failedEnvironmentsMap);
             }
         }
 
@@ -680,7 +679,7 @@ public class APIGatewayManager {
             for (Label label : api.getGatewayLabels()) {
                 Environment environment = getEnvironmentFromLabel(label);
                 failedEnvironmentsMap = removeAPIFromGatewayEnvironment(api, tenantDomain, environment,
-                        failedEnvironmentsMap, true);
+                        failedEnvironmentsMap);
             }
         }
 
@@ -705,12 +704,12 @@ public class APIGatewayManager {
      * @return failedEnvironmentsMap
      */
     public Map<String, String> removeAPIFromGatewayEnvironment(API api, String tenantDomain, Environment environment,
-                                                               Map<String, String> failedEnvironmentsMap,
-                                                               boolean gatewayFromLabel) {
+                                                               Map<String, String> failedEnvironmentsMap) {
 
         try {
             GatewayAPIDTO gatewayAPIDTO = createGatewayAPIDTOtoRemoveAPI(api, tenantDomain, environment);
-            if (gatewayArtifactSynchronizerProperties.isPublishDirectlyToGateway() && !gatewayFromLabel) {
+            if (gatewayArtifactSynchronizerProperties.isPublishDirectlyToGatewayEnabled()
+                    && environment.getServerURL() != null) {
                 APIGatewayAdminClient client = new APIGatewayAdminClient(environment);
                 client.unDeployAPI(gatewayAPIDTO);
             }
@@ -830,7 +829,7 @@ public class APIGatewayManager {
                     }
                     productAPIGatewayAPIDTO.setLocalEntriesToBeRemove(addStringToList(apiProduct.getUuid(),
                             productAPIGatewayAPIDTO.getLocalEntriesToBeRemove()));
-                    if (gatewayArtifactSynchronizerProperties.isPublishDirectlyToGateway()) {
+                    if (gatewayArtifactSynchronizerProperties.isPublishDirectlyToGatewayEnabled()) {
                         APIGatewayAdminClient client = new APIGatewayAdminClient(environment);
                         client.unDeployAPI(productAPIGatewayAPIDTO);
                     }
@@ -1079,7 +1078,7 @@ public class APIGatewayManager {
      */
     public boolean isAPIPublished(API api, String tenantDomain) throws APIManagementException {
 
-        if (gatewayArtifactSynchronizerProperties.isPublishDirectlyToGateway()) {
+        if (gatewayArtifactSynchronizerProperties.isPublishDirectlyToGatewayEnabled()) {
             for (Environment environment : environments.values()) {
                 try {
                     APIGatewayAdminClient client = new APIGatewayAdminClient(environment);
