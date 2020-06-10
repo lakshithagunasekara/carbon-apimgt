@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.apimgt.impl;
 
+import com.google.gson.Gson;
 import org.apache.axiom.om.OMAttribute;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.util.AXIOMUtil;
@@ -70,7 +71,6 @@ public class APIGatewayManager {
     private static APIGatewayManager instance;
 
     private Map<String, Environment> environments;
-    private Set<String> publishedGateways = new HashSet<>();
     private RecommendationEnvironment recommendationEnvironment;
     private GatewayArtifactSynchronizerProperties gatewayArtifactSynchronizerProperties;
     private ArtifactSaver artifactSaver;
@@ -91,7 +91,6 @@ public class APIGatewayManager {
         if (artifactSaver != null && config.getGatewayArtifactSynchronizerProperties().isSaveArtifactsEnabled()){
             this.saveArtifactsToStorage = true;
         }
-
     }
 
 	public synchronized static APIGatewayManager getInstance() {
@@ -111,7 +110,8 @@ public class APIGatewayManager {
      */
     public Map<String, String> publishToGateway(API api, APITemplateBuilder builder, String tenantDomain) {
 
-        Map<String, String> failedEnvironmentsMap = new HashMap<String, String>(0);
+        Map<String, String> failedGatewaysMap = new HashMap<String, String>(0);
+        Set<String> publishedGateways = new HashSet<>();
 
         if (debugEnabled) {
             log.debug("API to be published: " + api.getId());
@@ -123,10 +123,6 @@ public class APIGatewayManager {
             }
         }
 
-        if (saveArtifactsToStorage) {
-            publishedGateways = artifactSaver.getExistingLabelsForAPI(api.getUUID());
-        }
-
         if (api.getEnvironments() != null) {
             for (String environmentName : api.getEnvironments()) {
                 Environment environment = environments.get(environmentName);
@@ -134,19 +130,26 @@ public class APIGatewayManager {
                 if (environment == null) {
                     continue;
                 }
-                failedEnvironmentsMap = publishAPIToGatewayEnvironment(environment, api, builder, tenantDomain, false,
-                        failedEnvironmentsMap);
+                failedGatewaysMap = publishAPIToGatewayEnvironment(environment, api, builder, tenantDomain, false,
+                        publishedGateways, failedGatewaysMap);
             }
         }
 
         if (api.getGatewayLabels() != null) {
             for (Label label : api.getGatewayLabels()) {
                 Environment environment = getEnvironmentFromLabel(label);
-                failedEnvironmentsMap = publishAPIToGatewayEnvironment(environment, api, builder, tenantDomain, true,
-                        failedEnvironmentsMap);
+                failedGatewaysMap = publishAPIToGatewayEnvironment(environment, api, builder, tenantDomain, true,
+                        publishedGateways, failedGatewaysMap);
             }
         }
-        return failedEnvironmentsMap;
+
+        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+        DeployAPIInGatewayEvent
+                deployAPIInGatewayEvent = new DeployAPIInGatewayEvent(UUID.randomUUID().toString(),
+                System.currentTimeMillis(), APIConstants.EventType.DEPLOY_API_IN_GATEWAY.name(), tenantId,api.getUUID(),
+                publishedGateways);
+        APIUtil.sendNotification(deployAPIInGatewayEvent, APIConstants.NotifierType.GATEWAY_PUBLISHED_API.name());
+        return failedGatewaysMap;
     }
 
     /**
@@ -158,13 +161,14 @@ public class APIGatewayManager {
      * @param tenantDomain              - Tenant Domain of the publisher
      * @param isGatewayDefinedAsALabel  - Whether the environment is from a label or not. If it is from a label,
      *                                  directly publishing to gateway will not happen
-     * @param failedEnvironmentsMap     - This map will be updated with the environment if the publishing failed
+     * @param failedGatewaysMap         - This map will be updated with the gateway if the publishing failed
      * @return failedEnvironmentsMap
      */
     private Map<String, String> publishAPIToGatewayEnvironment(Environment environment, API api,
                                                                APITemplateBuilder builder,
                                                                String tenantDomain, boolean isGatewayDefinedAsALabel,
-                                                               Map<String, String> failedEnvironmentsMap) {
+                                                               Set<String> publishedGateways,
+                                                               Map<String,String> failedGatewaysMap) {
 
         long startTime;
         long endTime;
@@ -183,29 +187,13 @@ public class APIGatewayManager {
                         if (!isGatewayDefinedAsALabel) {
                             client = new APIGatewayAdminClient(environment);
                             client.deployAPI(gatewayAPIDTO);
-                        } else {
-                            failedEnvironmentsMap.put(environment.getName(),"Labels cannot be published directly to " +
-                                    "Gateway");
                         }
                     }
 
                     if (saveArtifactsToStorage) {
-                        if (publishedGateways.contains(environment.getName())) {
-                            artifactSaver.updateArtifact(gatewayAPIDTO,
-                                    APIConstants.GatewayArtifactSynchronizer.GATEWAY_INSTRUCTION_PUBLISH);
-                        } else {
-                            artifactSaver.saveArtifact(gatewayAPIDTO);
-                            publishedGateways.add(environment.getName());
-                        }
-
-                        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-                        DeployAPIInGatewayEvent
-                                deployAPIInGatewayEvent = new DeployAPIInGatewayEvent(UUID.randomUUID().toString(),
-                                System.currentTimeMillis(),
-                                APIConstants.EventType.DEPLOY_API_IN_GATEWAY.name(), tenantId, gatewayAPIDTO.getName(),
-                                gatewayAPIDTO.getApiId(), gatewayAPIDTO.getGatewayLabel());
-                        APIUtil.sendNotification(
-                                deployAPIInGatewayEvent, APIConstants.NotifierType.GATEWAY_PUBLISHED_API.name());
+                        artifactSaver.saveArtifact(new Gson().toJson(gatewayAPIDTO),
+                                APIConstants.GatewayArtifactSynchronizer.GATEWAY_INSTRUCTION_PUBLISH);
+                        publishedGateways.add(environment.getName());
                     }
                 }
             } else {
@@ -223,19 +211,19 @@ public class APIGatewayManager {
                 if gateway is unreachable we collect that environments into map with issue and show on popup in ui
                 therefore this didn't break the gateway publishing if one gateway unreachable
                  */
-            failedEnvironmentsMap.put(environment.getName(), axisFault.getMessage());
+            failedGatewaysMap.put(environment.getName(), axisFault.getMessage());
             log.error("Error occurred when publish to gateway " + environment.getName(), axisFault);
         } catch (APIManagementException | JSONException ex) {
             log.error("Error occurred deploying sequences on " + environment.getName(), ex);
-            failedEnvironmentsMap.put(environment.getName(), ex.getMessage());
+            failedGatewaysMap.put(environment.getName(), ex.getMessage());
         } catch (CertificateManagementException ex) {
             log.error("Error occurred while adding/updating client certificate in " + environment.getName(), ex);
-            failedEnvironmentsMap.put(environment.getName(), ex.getMessage());
+            failedGatewaysMap.put(environment.getName(), ex.getMessage());
         } catch (APITemplateException | XMLStreamException e) {
             log.error("Error occurred while Publishing API directly to Gateway", e);
-            failedEnvironmentsMap.put(environment.getName(), e.getMessage());
+            failedGatewaysMap.put(environment.getName(), e.getMessage());
         } catch (ArtifactSynchronizerException e) {
-            failedEnvironmentsMap.put(environment.getName(), e.getMessage());
+            failedGatewaysMap.put(environment.getName(), e.getMessage());
             log.error("Error occurred while saving API artifacts to the Storage");
         }
         long endTimePublishToGateway = System.currentTimeMillis();
@@ -243,7 +231,7 @@ public class APIGatewayManager {
             log.debug("Publishing to gateway : " + environment.getName() + " total time taken : " +
                     (endTimePublishToGateway - startTimePublishToGateway) / 1000 + "  seconds");
         }
-        return failedEnvironmentsMap;
+        return failedGatewaysMap;
     }
 
     /**
@@ -496,6 +484,7 @@ public class APIGatewayManager {
                                                 Set<API> associatedAPIs) {
 
         Map<String, String> failedEnvironmentsMap = new HashMap<>(0);
+        Set<String> publishedGateways = new HashSet<>();
 
         if (apiProduct.getEnvironments() == null) {
             return failedEnvironmentsMap;
@@ -512,10 +501,6 @@ public class APIGatewayManager {
             log.debug("Number of environments to be published to: " + apiProduct.getEnvironments().size());
         }
 
-        if (saveArtifactsToStorage) {
-            publishedGateways = artifactSaver.getExistingLabelsForAPI(apiProduct.getUuid());
-        }
-
         for (String environmentName : apiProduct.getEnvironments()) {
             if (debugEnabled) {
                 startTimePublishToGateway = System.currentTimeMillis();
@@ -530,12 +515,12 @@ public class APIGatewayManager {
                 client = new APIGatewayAdminClient(environment);
                 GatewayAPIDTO productAPIDto = new GatewayAPIDTO();
                 productAPIDto.setProvider(id.getProviderName());
+                productAPIDto.setApiId(apiProduct.getUuid());
                 productAPIDto.setName(id.getName());
                 productAPIDto.setVersion(id.getVersion());
                 productAPIDto.setTenantDomain(tenantDomain);
                 productAPIDto.setOverride(false);
                 productAPIDto.setGatewayLabel(environmentName);
-                productAPIDto.setApiId(apiProduct.getUuid());
                 String definition = apiProduct.getDefinition();
                 productAPIDto.setLocalEntriesToBeRemove(addStringToList(apiProduct.getUuid(),
                         productAPIDto.getLocalEntriesToBeRemove()));
@@ -577,22 +562,9 @@ public class APIGatewayManager {
                 }
 
                 if (saveArtifactsToStorage) {
-                    if (publishedGateways.contains(environment.getName())) {
-                        artifactSaver.updateArtifact(productAPIDto,
+                    artifactSaver.saveArtifact(new Gson().toJson(productAPIDto),
                                 APIConstants.GatewayArtifactSynchronizer.GATEWAY_INSTRUCTION_PUBLISH);
-                        publishedGateways.remove(environment.getName());
-                    } else {
-                        artifactSaver.saveArtifact(productAPIDto);
-                    }
-
-                    int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-                    DeployAPIInGatewayEvent
-                            deployAPIInGatewayEvent = new DeployAPIInGatewayEvent(UUID.randomUUID().toString(),
-                            System.currentTimeMillis(),
-                            APIConstants.EventType.DEPLOY_API_IN_GATEWAY.name(), tenantId, productAPIDto.getName(),
-                            productAPIDto.getApiId(), productAPIDto.getGatewayLabel());
-                    APIUtil.sendNotification(
-                            deployAPIInGatewayEvent, APIConstants.NotifierType.GATEWAY_PUBLISHED_API.name());
+                    publishedGateways.add(environment.getName());
                 }
 
                 if (debugEnabled) {
@@ -621,6 +593,13 @@ public class APIGatewayManager {
                         (endTimePublishToGateway - startTimePublishToGateway) / 1000 + "  seconds");
             }
         }
+
+        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+        DeployAPIInGatewayEvent
+                deployAPIInGatewayEvent = new DeployAPIInGatewayEvent(UUID.randomUUID().toString(),
+                System.currentTimeMillis(), APIConstants.EventType.DEPLOY_API_IN_GATEWAY.name(), tenantId,
+                apiProduct.getUuid(), publishedGateways);
+        APIUtil.sendNotification(deployAPIInGatewayEvent, APIConstants.NotifierType.GATEWAY_PUBLISHED_API.name());
 
         return failedEnvironmentsMap;
     }
@@ -660,6 +639,7 @@ public class APIGatewayManager {
     public Map<String, String> removeFromGateway(API api, String tenantDomain) {
 
         Map<String, String> failedEnvironmentsMap = new HashMap<String, String>(0);
+        Set<String> removedGateways = new HashSet<>();
 
         if (debugEnabled) {
             log.debug("API to be published: " + api.getId());
@@ -670,6 +650,7 @@ public class APIGatewayManager {
                 log.debug("Number of labeled gateways to be published to: " + (api.getGatewayLabels().size()));
             }
         }
+
         if (api.getEnvironments() != null) {
             for (String environmentName : api.getEnvironments()) {
                 Environment environment = environments.get(environmentName);
@@ -678,7 +659,7 @@ public class APIGatewayManager {
                     continue;
                 }
                 failedEnvironmentsMap = removeAPIFromGatewayEnvironment(api, tenantDomain, environment, false,
-                        failedEnvironmentsMap);
+                        removedGateways, failedEnvironmentsMap);
             }
         }
 
@@ -686,9 +667,17 @@ public class APIGatewayManager {
             for (Label label : api.getGatewayLabels()) {
                 Environment environment = getEnvironmentFromLabel(label);
                 failedEnvironmentsMap = removeAPIFromGatewayEnvironment(api, tenantDomain, environment, true,
-                        failedEnvironmentsMap);
+                        removedGateways, failedEnvironmentsMap);
             }
         }
+
+        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+        DeployAPIInGatewayEvent
+                deployAPIInGatewayEvent = new DeployAPIInGatewayEvent(UUID.randomUUID().toString(),
+                System.currentTimeMillis(), APIConstants.EventType.REMOVE_API_FROM_GATEWAY.name(), tenantId,
+                api.getUUID(), removedGateways);
+        APIUtil.sendNotification(deployAPIInGatewayEvent,
+                APIConstants.NotifierType.GATEWAY_PUBLISHED_API.name());
 
         updateRemovedClientCertificates(api, tenantDomain);
 
@@ -713,6 +702,7 @@ public class APIGatewayManager {
      */
     public Map<String, String> removeAPIFromGatewayEnvironment(API api, String tenantDomain, Environment environment,
                                                                boolean isGatewayDefinedAsALabel,
+                                                               Set<String> removedGateways,
                                                                Map<String, String> failedEnvironmentsMap) {
 
         try {
@@ -724,16 +714,9 @@ public class APIGatewayManager {
             }
 
             if (saveArtifactsToStorage) {
-                artifactSaver.updateArtifact(gatewayAPIDTO,
+                artifactSaver.saveArtifact(new Gson().toJson(gatewayAPIDTO),
                         APIConstants.GatewayArtifactSynchronizer.GATEWAY_INSTRUCTION_REMOVE);
-                int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-                DeployAPIInGatewayEvent
-                        deployAPIInGatewayEvent = new DeployAPIInGatewayEvent(UUID.randomUUID().toString(),
-                        System.currentTimeMillis(),
-                        APIConstants.EventType.REMOVE_API_FROM_GATEWAY.name(), tenantId, gatewayAPIDTO.getName(),
-                        gatewayAPIDTO.getApiId(), gatewayAPIDTO.getGatewayLabel());
-                APIUtil.sendNotification(deployAPIInGatewayEvent,
-                        APIConstants.NotifierType.GATEWAY_PUBLISHED_API.name());
+                removedGateways.add(gatewayAPIDTO.getGatewayLabel());
             }
         } catch (AxisFault axisFault) {
             /*
@@ -814,7 +797,10 @@ public class APIGatewayManager {
     public Map<String, String> removeFromGateway(APIProduct apiProduct, String tenantDomain, Set<API> associatedAPIs) {
 
         Map<String, String> failedEnvironmentsMap = new HashMap<>();
+        Set<String> removedGateways = new HashSet<>();
+
         GatewayAPIDTO productAPIGatewayAPIDTO = new GatewayAPIDTO();
+        productAPIGatewayAPIDTO.setApiId(apiProduct.getUuid());
         productAPIGatewayAPIDTO.setName(apiProduct.getId().getName());
         productAPIGatewayAPIDTO.setVersion(apiProduct.getId().getVersion());
         productAPIGatewayAPIDTO.setProvider(PRODUCT_PREFIX);
@@ -844,17 +830,9 @@ public class APIGatewayManager {
                     }
 
                     if (saveArtifactsToStorage) {
-                        artifactSaver.updateArtifact(productAPIGatewayAPIDTO,
+                        artifactSaver.saveArtifact(new Gson().toJson(productAPIGatewayAPIDTO),
                                 APIConstants.GatewayArtifactSynchronizer.GATEWAY_INSTRUCTION_REMOVE);
-                        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-                        DeployAPIInGatewayEvent
-                                deployAPIInGatewayEvent = new DeployAPIInGatewayEvent(UUID.randomUUID().toString(),
-                                System.currentTimeMillis(),
-                                APIConstants.EventType.REMOVE_API_FROM_GATEWAY.name(), tenantId,
-                                productAPIGatewayAPIDTO.getName(),
-                                productAPIGatewayAPIDTO.getApiId(), productAPIGatewayAPIDTO.getGatewayLabel());
-                        APIUtil.sendNotification(
-                                deployAPIInGatewayEvent, APIConstants.NotifierType.GATEWAY_PUBLISHED_API.name());
+                        removedGateways.add(productAPIGatewayAPIDTO.getGatewayLabel());
                     }
 
                 } catch (AxisFault e) {
@@ -871,6 +849,14 @@ public class APIGatewayManager {
                 }
             }
         }
+
+        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+        DeployAPIInGatewayEvent
+                deployAPIInGatewayEvent = new DeployAPIInGatewayEvent(UUID.randomUUID().toString(),
+                System.currentTimeMillis(),
+                APIConstants.EventType.REMOVE_API_FROM_GATEWAY.name(), tenantId, apiProduct.getUuid(),
+                removedGateways);
+        APIUtil.sendNotification(deployAPIInGatewayEvent, APIConstants.NotifierType.GATEWAY_PUBLISHED_API.name());
         return failedEnvironmentsMap;
     }
 
@@ -1110,7 +1096,7 @@ public class APIGatewayManager {
             }
         } else {
             if (saveArtifactsToStorage){
-                return !artifactSaver.getExistingLabelsForAPI(api.getUUID()).isEmpty();
+                return artifactSaver.isAPIPublished(api.getUUID());
             }
         }
         return false;
