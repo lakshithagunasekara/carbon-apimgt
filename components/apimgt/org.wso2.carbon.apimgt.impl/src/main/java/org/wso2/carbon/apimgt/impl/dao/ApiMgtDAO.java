@@ -15234,9 +15234,7 @@ public class ApiMgtDAO {
             statement.setString(5, gatewayAPIDTO.getProvider());
             statement.executeUpdate();
         } catch (SQLException e) {
-            if (e.getErrorCode() != 1062) {
-                handleException("Failed to add artifacts for " + gatewayAPIDTO.getName(), e);
-            }
+            handleException("Failed to add artifacts for " + gatewayAPIDTO.getName(), e);
         }
     }
 
@@ -15294,7 +15292,7 @@ public class ApiMgtDAO {
      *
      * @param APIId        - UUID of the API
      * @param gatewayLabel - Gateway label of the API
-     * @throws APIManagementException if an error occurs while adding resource scope to IDN table
+     * @throws APIManagementException  if an error occurs
      */
     public ByteArrayInputStream getGatewayPublishedAPIArtifacts(String APIId, String gatewayLabel,
                                                                 String gatewayInstruction)
@@ -15321,7 +15319,7 @@ public class ApiMgtDAO {
      * Get all the valid labels for an API with the gateway instruction 'publish'
      *
      * @param APIId - UUID of the API
-     * @throws APIManagementException if an error occurs while adding resource scope to IDN table
+     * @throws APIManagementException  if an error occurs
      */
     public Set<String> getExistingLabelsForAPI(String APIId) throws APIManagementException {
 
@@ -15338,6 +15336,25 @@ public class ApiMgtDAO {
             handleException("Failed to get artifacts of API with ID " + APIId, e);
         }
         return labels;
+    }
+
+    /**
+     * Check whether the API details exists in the db
+     *
+     * @param APIId - UUID of the API
+     * @throws APIManagementException  if an error occurs
+     */
+    public boolean isAPIDetailsExists(String APIId) throws APIManagementException {
+
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQLConstants.GET_GATEWAY_PUBLISHED_API_DETAILS)) {
+            statement.setString(1, APIId);
+            ResultSet rs = statement.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            handleException("Failed to get API details status of API with ID " + APIId, e);
+        }
+        return false;
     }
 
 }
