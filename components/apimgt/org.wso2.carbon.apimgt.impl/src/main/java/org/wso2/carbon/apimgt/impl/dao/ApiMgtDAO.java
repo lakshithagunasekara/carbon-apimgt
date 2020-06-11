@@ -15342,7 +15342,7 @@ public class ApiMgtDAO {
     /**
      * Retrieve the list of blobs of the APIs for a given label
      *
-     * @param gatewayLabel - Gateway label of the API
+     * @param label - Gateway label of the API
      * @throws APIManagementException if an error occurs
      */
     public List<ByteArrayInputStream> getAllGatewayPublishedAPIArtifacts(String label)
@@ -15358,7 +15358,6 @@ public class ApiMgtDAO {
                 byte[] st = (byte[]) rs.getObject(1);
                 ByteArrayInputStream byteArrayInputStream= new ByteArrayInputStream(st);
                 baip.add(byteArrayInputStream);
-                log.info("Retrieved an api from DB");
             }
             return baip;
         } catch (SQLException e) {
