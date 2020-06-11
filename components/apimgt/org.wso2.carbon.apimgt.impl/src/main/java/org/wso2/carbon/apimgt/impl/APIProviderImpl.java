@@ -1397,13 +1397,26 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                             apiPublished.setOldOutSequence(oldApi.getOutSequence());
                             //old api contain what environments want to remove
                             Set<String> environmentsToRemove = new HashSet<String>(oldApi.getEnvironments());
-                            List<Label> labelsToRemove = new ArrayList<>(oldApi.getGatewayLabels());
+                            List<Label> labelsToRemove = null;
+                            if (oldApi.getGatewayLabels() != null){
+                                 labelsToRemove = new ArrayList<>(oldApi.getGatewayLabels());
+                            } else {
+                                 labelsToRemove = new ArrayList<>();
+                            }
+
                             //updated api contain what environments want to add
                             Set<String> environmentsToPublish = new HashSet<String>(apiPublished.getEnvironments());
-                            List<Label> labelsToPublish = new ArrayList<>(apiPublished.getGatewayLabels());
-
+                            List<Label> labelsToPublish;
+                            List<Label> labelsRemoved = null;
+                            if (apiPublished.getGatewayLabels() != null ){
+                                labelsToPublish = new ArrayList<>(apiPublished.getGatewayLabels());
+                                labelsRemoved = new ArrayList<>(oldApi.getGatewayLabels());
+                            } else {
+                                labelsToPublish = new ArrayList<>();
+                                labelsRemoved = new ArrayList<>();
+                            }
                             Set<String> environmentsRemoved = new HashSet<String>(oldApi.getEnvironments());
-                            List<Label> labelsRemoved = new ArrayList<>(oldApi.getGatewayLabels());
+
                             if (!environmentsToPublish.isEmpty() && !environmentsToRemove.isEmpty()) {
                                 // this block will sort what gateways have to remove and published
                                 environmentsRemoved.retainAll(environmentsToPublish);
