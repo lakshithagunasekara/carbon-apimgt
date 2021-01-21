@@ -46,6 +46,7 @@ import org.wso2.carbon.apimgt.api.model.Documentation;
 import org.wso2.carbon.apimgt.api.model.Identifier;
 import org.wso2.carbon.apimgt.api.model.Mediation;
 import org.wso2.carbon.apimgt.api.model.ResourceFile;
+import org.wso2.carbon.apimgt.api.model.graphql.queryanalysis.GraphqlComplexityInfo;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.certificatemgt.CertificateManager;
 import org.wso2.carbon.apimgt.impl.certificatemgt.CertificateManagerImpl;
@@ -60,6 +61,7 @@ import org.wso2.carbon.apimgt.rest.api.common.RestApiCommonUtil;
 import org.wso2.carbon.apimgt.rest.api.common.RestApiConstants;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.APIDTO;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.APIProductDTO;
+import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.GraphQLQueryComplexityInfoDTO;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.MediationPolicyDTO;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.ProductAPIDTO;
 import org.wso2.carbon.registry.api.Collection;
@@ -775,6 +777,13 @@ public class ExportUtils {
                     String schemaContent = apiProvider.getGraphqlSchema(apiIdentifier);
                     CommonUtil.writeFile(archivePath + ImportExportConstants.GRAPHQL_SCHEMA_DEFINITION_LOCATION,
                             schemaContent);
+                    GraphqlComplexityInfo graphqlComplexityInfo = apiProvider.getComplexityDetails(apiIdentifier);
+                    if (graphqlComplexityInfo != null) {
+                        GraphQLQueryComplexityInfoDTO graphQLQueryComplexityInfoDTO =
+                                GraphqlQueryAnalysisMappingUtil.fromGraphqlComplexityInfotoDTO(graphqlComplexityInfo);
+                        CommonUtil.writeDtoToFile(archivePath + ImportExportConstants.GRAPHQL_COMPLEXITY_INFO_LOCATION,
+                                exportFormat, ImportExportConstants.GRAPHQL_COMPLEXITY, graphQLQueryComplexityInfoDTO);
+                    }
                 }
                 // For GraphQL APIs, swagger export is not needed
                 if (!APIConstants.APITransportType.GRAPHQL.toString().equalsIgnoreCase(apiType)) {
