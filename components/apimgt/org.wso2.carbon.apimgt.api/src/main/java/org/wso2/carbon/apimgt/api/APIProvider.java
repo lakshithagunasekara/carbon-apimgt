@@ -1751,7 +1751,6 @@ public interface APIProvider extends APIManager {
     void deleteAPIRevision(String apiId, String apiRevisionId, String organization) throws APIManagementException;
 
     /**
-<<<<<<<<< Temporary merge branch 1
      * This method updates the AsyncApi definition in registry
      *
      * @param api   API
@@ -1816,7 +1815,6 @@ public interface APIProvider extends APIManager {
 
     List<APIRevisionDeployment> getAPIRevisionsDeploymentList(String apiId) throws APIManagementException;
 
-<<<<<<< HEAD
     void addEnvironmentSpecificAPIProperties(String apiUuid, String envUuid,
             EnvironmentPropertiesDTO environmentPropertyDTO) throws APIManagementException;
 
@@ -1830,7 +1828,6 @@ public interface APIProvider extends APIManager {
      * @return List of environments related to the given tenant
      */
     Environment getEnvironment(String organization, String uuid) throws APIManagementException;
-=======
     /**
      * Get all API Operation Level Mediation Policies of an API
      *
@@ -1849,5 +1846,54 @@ public interface APIProvider extends APIManager {
      * @throws APIManagementException
      */
     void setOperationPoliciesToURITemplates(String apiId, Set<URITemplate> uriTemplates) throws APIManagementException;
->>>>>>> Add support for operation policies in API create and update flows
+
+    /**
+     * Adds ResourceEndpoint to an API
+     *
+     * @param uuid                API Identifier
+     * @param endpoint            Resource Endpoint
+     * @param organization        Identifier of an organization
+     * @return UUID of the resource endpoint
+     * @throws APIManagementException if failed to add resource endpoint
+     */
+    String addResourceEndpoint(String uuid, ResourceEndpoint endpoint, String organization)
+            throws APIManagementException;
+
+    /**
+     * Gets Resource Endpoint by UUID
+     *
+     * @param uuid          Resource Endpoint UUID
+     * @param organization  Organization
+     * @return
+     * @throws APIManagementException
+     */
+    ResourceEndpoint getResourceEndpointByUUID(String uuid, String organization) throws APIManagementException;
+
+    /**
+     * Get resource endpoints list of an API
+     *
+     * @param apiId         API UUID
+     * @param organization  Organization
+     * @return List of Resource Endpoints
+     * @throws APIManagementException
+     */
+    List<ResourceEndpoint> getResourceEndpoints(String apiId, String organization) throws APIManagementException;
+
+    /**
+     * Update Resource Endpoint
+     *
+     * @param endpoint      Resource endpoint
+     * @param organization  Organization
+     * @throws APIManagementException
+     */
+    void updateResourceEndpoint(ResourceEndpoint endpoint, String organization) throws APIManagementException;
+
+    /**
+     * Deletes Resource Endpoint
+     *
+     * @param uuid          Resource Endpoint UUID
+     * @param organization  Organization
+     * @throws APIManagementException
+     */
+    void deleteResourceEndpoint(String uuid, String organization) throws  APIManagementException;
 }
