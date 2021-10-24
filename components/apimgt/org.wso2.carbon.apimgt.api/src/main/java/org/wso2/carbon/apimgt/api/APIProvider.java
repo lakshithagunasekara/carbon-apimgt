@@ -1829,16 +1829,6 @@ public interface APIProvider extends APIManager {
      */
     Environment getEnvironment(String organization, String uuid) throws APIManagementException;
     /**
-     * Get all API Operation Level Mediation Policies of an API
-     *
-     * @param apiId API UUID
-     * @return List of API Operation Level Mediation Policies
-     * @throws APIManagementException if failed to fetch API Operation Policies
-     */
-
-    Set<URITemplate> getURITemplatesWithOperationPolicies(String apiId) throws APIManagementException;
-
-    /**
      * Set existing operation policy mapping to the URI Templates
      *
      * @param apiId API UUID
@@ -1846,6 +1836,8 @@ public interface APIProvider extends APIManager {
      * @throws APIManagementException
      */
     void setOperationPoliciesToURITemplates(String apiId, Set<URITemplate> uriTemplates) throws APIManagementException;
+
+    int addOperationPolicy(int urlMappingId, OperationPolicy policy) throws APIManagementException;
 
     /**
      * Adds ResourceEndpoint to an API
@@ -1918,4 +1910,8 @@ public interface APIProvider extends APIManager {
      * @throws APIManagementException
      */
     boolean isResourceEndpointUsed(String uuid) throws APIManagementException;
+
+    void addResourceEndpointMapping(int policyId, String endpointUUID) throws APIManagementException;
+
+    Set<URITemplate> getURITemplatesOfAPI(String uuid) throws APIManagementException;
 }
