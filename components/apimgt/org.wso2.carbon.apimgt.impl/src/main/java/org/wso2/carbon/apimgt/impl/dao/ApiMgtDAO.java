@@ -10206,7 +10206,7 @@ public class ApiMgtDAO {
      * Check whether the given scope key is already assigned locally to another API which are different from the given
      * API or its versioned APIs under given tenant.
      *
-     * @param uuid API uuid
+     * @param apiName       API Name
      * @param scopeKey      candidate scope key
      * @param tenantId      tenant id
      * @param organization identifier of the organization
@@ -14541,9 +14541,7 @@ public class ApiMgtDAO {
                                             .get(APIConstants.ENDPOINT_ID_PARAM);
                                     int resourceEndpointId = 0;
                                     if (!addedResourceEndpoints.contains(endpointId)) {
-                                        ResourceEndpoint baseAPIEndpoint = getResourceEndpointByUUID(
-                                                apiProductResource.getApiIdentifier().getUUID(), endpointId,
-                                                tenantDomain);
+                                        ResourceEndpoint baseAPIEndpoint = getResourceEndpointByUUID(endpointId);
                                         if (baseAPIEndpoint != null) {
                                             insertResourceEndpoint
                                                     .setString(1, apiProductResource.getApiIdentifier().getUUID());
@@ -16248,7 +16246,7 @@ public class ApiMgtDAO {
                 //Adding to AM_API_RESOURCE_ENDPOINTS table
                 String tenantDomain = APIUtil.getTenantDomainFromTenantId(tenantId);
                 List<ResourceEndpoint> resourceEndpointsOfCurrentAPI = getResourceEndpoints(apiRevision.getApiUUID(),
-                        tenantDomain, connection);
+                        connection);
                 PreparedStatement addResourceEndpointPrepStmt = connection
                         .prepareStatement(SQLConstants.ResourceEndpointConstants.ADD_RESOURCE_ENDPOINT);
                 for (ResourceEndpoint resourceEndpoint : resourceEndpointsOfCurrentAPI) {
@@ -17047,7 +17045,7 @@ public class ApiMgtDAO {
                 //Restoring AM_API_RESOURCE_ENDPOINTS table
                 String tenantDomain = APIUtil.getTenantDomainFromTenantId(tenantId);
                 List<ResourceEndpoint> resourceEndpointsOfRevision = getResourceEndpoints(apiRevision.getRevisionUUID(),
-                        tenantDomain, connection);
+                        connection);
                 PreparedStatement addResourceEndpointPrepStmt = connection
                         .prepareStatement(SQLConstants.ResourceEndpointConstants.ADD_RESOURCE_ENDPOINT);
                 for (ResourceEndpoint resourceEndpoint : resourceEndpointsOfRevision) {
@@ -17519,7 +17517,7 @@ public class ApiMgtDAO {
                                     int resourceEndpointId = 0;
                                     if (!addedResourceEndpoints.contains(endpointId)) {
                                         ResourceEndpoint baseAPIEndpoint = getProductResourceEndpointByUUID(
-                                                new Integer(apiId).toString(), endpointId, tenantDomain);
+                                                new Integer(apiId).toString(), endpointId);
                                         if (baseAPIEndpoint != null) {
                                             insertResourceEndpoint.setString(1, baseAPIEndpoint.getApiUUID());
                                             insertResourceEndpoint.setString(2, endpointId);
@@ -17785,7 +17783,7 @@ public class ApiMgtDAO {
                                         int resourceEndpointId = 0;
                                         if (!addedResourceEndpoints.contains(endpointId)) {
                                             ResourceEndpoint baseAPIEndpoint = getProductResourceEndpointByUUID(
-                                                    apiRevision.getRevisionUUID(), endpointId, tenantDomain);
+                                                    apiRevision.getRevisionUUID(), endpointId);
                                             if (baseAPIEndpoint != null) {
                                                 insertResourceEndpoint
                                                         .setString(1, baseAPIEndpoint.getApiUUID());
@@ -18135,8 +18133,7 @@ public class ApiMgtDAO {
         return uriTemplateList;
     }
 
-    //todo: tenantDomain -> organization
-    public String addResourceEndpoint(String apiUUID, ResourceEndpoint endpoint, String tenantDomain)
+    public String addResourceEndpoint(String apiUUID, ResourceEndpoint endpoint)
             throws APIManagementException {
         String uuid = UUID.randomUUID().toString();
 
@@ -18159,23 +18156,13 @@ public class ApiMgtDAO {
         return uuid;
     }
 
-    public ResourceEndpoint getResourceEndpointByUUID(String apiId, String endpointId, String tenantDomain)
+    public ResourceEndpoint getResourceEndpointByUUID(String endpointId)
             throws APIManagementException {
         ResourceEndpoint resourceEndpoint = null;
 
-        String query;
-        APIRevision apiRevision = checkAPIUUIDIsARevisionUUID(apiId);
-
-        if (apiRevision == null) {
-            query = SQLConstants.ResourceEndpointConstants.GET_RESOURCE_ENDPOINT_OF_CURRENT_API_BY_UUID;
-        } else {
-            query = "";
-            //query = SQLConstants.ResourceEndpointConstants.GET_RESOURCE_ENDPOINT_;
-        }
-
         try (Connection connection = APIMgtDBUtil.getConnection();
-                PreparedStatement prepStmt = connection.prepareStatement(query)) {
-            int tenantId = APIUtil.getTenantIdFromTenantDomain(tenantDomain);
+                PreparedStatement prepStmt = connection.prepareStatement(
+                        SQLConstants.ResourceEndpointConstants.GET_RESOURCE_ENDPOINT_OF_CURRENT_API_BY_UUID)) {
             prepStmt.setString(1, endpointId);
             try (ResultSet rs = prepStmt.executeQuery()) {
                 if (rs.next()) {
@@ -18198,7 +18185,7 @@ public class ApiMgtDAO {
         return resourceEndpoint;
     }
 
-    public ResourceEndpoint getProductResourceEndpointByUUID(String productId, String endpointId, String tenantDomain)
+    public ResourceEndpoint getProductResourceEndpointByUUID(String productId, String endpointId)
             throws APIManagementException {
         ResourceEndpoint resourceEndpoint = null;
 
@@ -18206,11 +18193,8 @@ public class ApiMgtDAO {
 
         try (Connection connection = APIMgtDBUtil.getConnection();
                 PreparedStatement prepStmt = connection.prepareStatement(query)) {
-            int tenantId = APIUtil.getTenantIdFromTenantDomain(tenantDomain);
-            prepStmt.setInt(1, tenantId);
-            prepStmt.setString(2, endpointId);
-            prepStmt.setInt(3, tenantId);
-            prepStmt.setString(4, productId);
+            prepStmt.setString(1, endpointId);
+            prepStmt.setString(2, productId);
             try (ResultSet rs = prepStmt.executeQuery()) {
                 if (rs.next()) {
                     resourceEndpoint = new ResourceEndpoint();
@@ -18261,12 +18245,11 @@ public class ApiMgtDAO {
         return policyMappingId;
     }
 
-    public void updateResourceEndpoint(ResourceEndpoint endpoint, String tenantDomain)
+    public void updateResourceEndpoint(ResourceEndpoint endpoint)
             throws APIManagementException {
         try (Connection connection = APIMgtDBUtil.getConnection();
                 PreparedStatement prepStmt = connection
                         .prepareStatement(SQLConstants.ResourceEndpointConstants.UPDATE_RESOURCE_ENDPOINT)) {
-            int tenantId = APIUtil.getTenantIdFromTenantDomain(tenantDomain);
 
             prepStmt.setString(1, endpoint.getName());
             prepStmt.setString(2, endpoint.getEndpointType().toString());
@@ -18281,14 +18264,12 @@ public class ApiMgtDAO {
         }
     }
 
-    public void deleteResourceEndpoint(String uuid, String tenantDomain) throws APIManagementException {
+    public void deleteResourceEndpoint(String uuid) throws APIManagementException {
         //todo: set autocommit false and then commit for delete update and add
         try (Connection connection = APIMgtDBUtil.getConnection();
                 PreparedStatement prepStmt = connection
                         .prepareStatement(SQLConstants.ResourceEndpointConstants.DELETE_RESOURCE_ENDPOINT)) {
-            int tenantId = APIUtil.getTenantIdFromTenantDomain(tenantDomain);
             prepStmt.setString(1, uuid);
-            prepStmt.setInt(2, tenantId);
             //todo: check for > 0 and return  from method
             prepStmt.executeUpdate();
         } catch (SQLException e) {
@@ -18296,7 +18277,7 @@ public class ApiMgtDAO {
         }
     }
 
-    public boolean isAPIResourceEndpointExists(String apiUUID, String revisionUUID, String endpointId, String tenantDomain)
+    public boolean isAPIResourceEndpointExists(String apiUUID, String revisionUUID, String endpointId)
             throws APIManagementException {
         boolean exists = false;
         boolean isRevision = false;
@@ -18307,7 +18288,6 @@ public class ApiMgtDAO {
         }
         try (Connection connection = APIMgtDBUtil.getConnection();
                 PreparedStatement prepStmt = connection.prepareStatement(query)) {
-            int tenantId = APIUtil.getTenantIdFromTenantDomain(tenantDomain);
             prepStmt.setString(1, endpointId);
             prepStmt.setString(2, apiUUID);
             if (isRevision) {
@@ -18341,18 +18321,18 @@ public class ApiMgtDAO {
         return isUsed;
     }
 
-    public List<ResourceEndpoint> getResourceEndpoints(String uuid, String tenantDomain)
+    public List<ResourceEndpoint> getResourceEndpoints(String uuid)
             throws APIManagementException {
         List<ResourceEndpoint> endpointList = new ArrayList<>();
         try (Connection connection = APIMgtDBUtil.getConnection()) {
-            endpointList = getResourceEndpoints(uuid, tenantDomain, connection);
+            endpointList = getResourceEndpoints(uuid, connection);
         } catch (SQLException e) {
             handleException("Error while fetching resource endpoints of API " + uuid, e);
         }
         return endpointList;
     }
 
-    private List<ResourceEndpoint> getResourceEndpoints(String uuid, String tenantDomain, Connection connection)
+    private List<ResourceEndpoint> getResourceEndpoints(String uuid, Connection connection)
             throws APIManagementException {
         List<ResourceEndpoint> endpointList = new ArrayList<>();
         boolean isNewConnection = false;
