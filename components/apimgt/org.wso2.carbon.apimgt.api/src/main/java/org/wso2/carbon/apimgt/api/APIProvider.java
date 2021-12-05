@@ -19,6 +19,7 @@ package org.wso2.carbon.apimgt.api;
 
 import org.json.simple.JSONObject;
 import org.wso2.carbon.apimgt.api.doc.model.APIResource;
+import org.wso2.carbon.apimgt.api.doc.model.Operation;
 import org.wso2.carbon.apimgt.api.dto.CertificateInformationDTO;
 import org.wso2.carbon.apimgt.api.dto.CertificateMetadataDTO;
 import org.wso2.carbon.apimgt.api.dto.ClientCertificateDTO;
@@ -1568,6 +1569,16 @@ public interface APIProvider extends APIManager {
      * @throws APIManagementException
      */
     Mediation addApiSpecificMediationPolicy(String apiId, Mediation mediationPolicy, String organization) throws APIManagementException;
+
+    /**
+     * upload operational policy to api
+     * @param apiUUID           UUID of the API
+     * @param operationPolicy   Operation Policy
+     * @param organization      Identifier of an organization
+     * @return added policy
+     * @throws APIManagementException
+     */
+    boolean addApiSpecificOperationalPolicy(String apiUUID, OperationPolicy operationPolicy, String organization) throws APIManagementException;
 
     /**
      * update mediation policy content

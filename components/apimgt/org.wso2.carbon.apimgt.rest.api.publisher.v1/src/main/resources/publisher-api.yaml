@@ -3489,7 +3489,7 @@ paths:
       security:
         - OAuth2Security:
             - apim:api_view
-            - apim:api_manage 
+            - apim:api_manage
             - apim:mediation_policy_view
             - apim:mediation_policy_manage
             - apim:api_mediation_policy_manage
@@ -3578,6 +3578,129 @@ paths:
           source: 'curl -k -H "Authorization: Bearer ae4eae22-3f65-387b-a171-d37eaa366fa8"
           -H "Content-Type: multipart/form-data" -F mediationPolicyFile=@TokenExchange.xml
           -F type=in "https://127.0.0.1:9443/api/am/publisher/v2/apis/96077508-fd01-4fae-bc64-5de0e2baf43c/mediation-policies"'
+      x-examples:
+        $ref: docs/examples/mediation-policies/apis_id_mediationpolicies_post.yaml
+
+  /apis/{apiId}/operational-policy-definition:
+    get:
+      tags:
+        - API Operational Policies
+      summary: |
+        Get all Operational Policies of an API
+      description: |
+        This operation provides you a list of available operational policies of an API.
+      operationId: getAllAPISpecificOperationalPolicyDefinitions
+      parameters:
+        - $ref: '#/components/parameters/apiId'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - name: query
+          in: query
+          description: -Not supported yet-
+          schema:
+            type: string
+      responses:
+        200:
+          description: |
+            OK.
+            List of qualifying policies is returned.
+          headers:
+            Content-Type:
+              description: The content type of the body.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationPolicyList'
+        304:
+          description: |
+            Not Modified.
+            Empty body because the client has already the latest version of the requested resource (Will be supported in future).
+          content: {}
+        406:
+          $ref: '#/components/responses/NotAcceptable'
+      security:
+        - OAuth2Security:
+            - apim:api_view
+            - apim:api_manage
+            - apim:mediation_policy_view
+            - apim:mediation_policy_manage
+            - apim:api_mediation_policy_manage
+      x-code-samples:
+        - lang: Curl
+          source: 'curl -k -H "Authorization: Bearer ae4eae22-3f65-387b-a171-d37eaa366fa8"
+          "https://127.0.0.1:9443/api/am/publisher/v2/apis/96077508-fd01-4fae-bc64-5de0e2baf43c/operational-policies"'
+      x-examples:
+        $ref: docs/examples/mediation-policies/apis_id_mediationpolicies_get.yaml
+
+    post:
+      tags:
+        - API Operational Policies
+      summary: Add an API Specific Operational Policy
+      description: |
+        This operation can be used to add an API specifc operational policy.
+      operationId: addAPISpecificOperationalPolicy
+      parameters:
+        - $ref: '#/components/parameters/apiId'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - type
+              properties:
+                policySpecFile:
+                  type: string
+                  description: Policy specification to upload
+                  format: binary
+                policyTemplateFile:
+                  type: string
+                  description: Policy template to upload
+                  format: binary
+                policyName:
+                  type: string
+                  description: Name of the policy
+                flow:
+                  type: string
+                  description: Flow of the sequence
+        required: true
+      responses:
+        201:
+          description: |
+            OK.
+            Operational policy uploaded
+          headers:
+            Location:
+              description: |
+                The URL of the uploaded mediation policy of the API.
+              schema:
+                type: string
+            Content-Type:
+              description: |
+                The content type of the body.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationPolicyInfo'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+      security:
+        - OAuth2Security:
+            - apim:api_create #todo: consider removing this. There are some requirements to deny creating policies even though user has api_create scope.
+            - apim:api_manage
+            - apim:mediation_policy_create
+            - apim:mediation_policy_manage
+            - apim:api_mediation_policy_manage
+      x-code-samples:
+        - lang: Curl
+          source: 'curl -k -H "Authorization: Bearer ae4eae22-3f65-387b-a171-d37eaa366fa8"
+          -H "Content-Type: multipart/form-data" -F mediationPolicyFile=@TokenExchange.xml
+          -F type=in "https://127.0.0.1:9443/api/am/publisher/v2/apis/96077508-fd01-4fae-bc64-5de0e2baf43c/operational-policies"'
       x-examples:
         $ref: docs/examples/mediation-policies/apis_id_mediationpolicies_post.yaml
 
@@ -9448,6 +9571,39 @@ components:
             - in
             - out
             - fault
+    OperationPolicyList:
+      title: Operation policy List
+      type: object
+      properties:
+        count:
+          type: integer
+          description: |
+            Number of operational policies returned.
+          example: 1
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperationPolicyInfo'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    OperationPolicyInfo:
+      title: OperationPolicyInfo
+      type: object
+      properties:
+        name:
+          type: string
+          example: removeHeaderPolicy
+        apiId:
+          type: string
+          example: 01234567-0123-0123-0123-012345678901
+        id:
+          type: string
+          example: 01234567-0123-0123-0123-012345678901
+        flows:
+          type: array
+          items:
+            type: string
+            example: in
     ThrottlingPolicyList:
       title: Throttling policy list
       type: object

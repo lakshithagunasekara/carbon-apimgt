@@ -62,7 +62,6 @@ import org.json.simple.parser.ParseException;
 import org.wso2.carbon.apimgt.api.APIDefinition;
 import org.wso2.carbon.apimgt.api.APIDefinitionValidationResponse;
 import org.wso2.carbon.apimgt.api.APIManagementException;
-import org.wso2.carbon.apimgt.api.APIMgtBadRequestException;
 import org.wso2.carbon.apimgt.api.APIMgtResourceAlreadyExistsException;
 import org.wso2.carbon.apimgt.api.APIMgtResourceNotFoundException;
 import org.wso2.carbon.apimgt.api.APIProvider;
@@ -92,6 +91,7 @@ import org.wso2.carbon.apimgt.api.model.Environment;
 import org.wso2.carbon.apimgt.api.model.LifeCycleEvent;
 import org.wso2.carbon.apimgt.api.model.Mediation;
 import org.wso2.carbon.apimgt.api.model.Monetization;
+import org.wso2.carbon.apimgt.api.model.OperationPolicy;
 import org.wso2.carbon.apimgt.api.model.ResourceFile;
 import org.wso2.carbon.apimgt.api.model.ResourcePath;
 import org.wso2.carbon.apimgt.api.model.SOAPToRestSequence;
@@ -167,6 +167,7 @@ import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.LifecycleStateDTO;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.MediationDTO;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.MediationListDTO;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.OpenAPIDefinitionValidationResponseDTO;
+import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.OperationPolicyInfoDTO;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.PaginationDTO;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.PatchRequestBodyDTO;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.PostRequestBodyDTO;
@@ -199,7 +200,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -2243,6 +2243,14 @@ public class ApisApiServiceImpl implements ApisApiService {
     }
 
     @Override
+    public Response getAllAPISpecificOperationalPolicyDefinitions(String apiId, Integer limit, Integer offset,
+                                                                  String query, MessageContext messageContext)
+            throws APIManagementException {
+
+        return null;
+    }
+
+    @Override
     public Response deleteAPIMediationPolicyByPolicyId(String apiId, String mediationPolicyId,
             String ifMatch, MessageContext messageContext) {
         try {
@@ -2685,6 +2693,89 @@ public class ApisApiServiceImpl implements ApisApiService {
             RestApiUtil.handleInternalServerError(errorMessage, e, log);
         }
         return Response.serverError().build();
+    }
+
+    @Override
+    public Response addAPISpecificOperationalPolicy(String apiId, InputStream policySpecFileInputStream,
+                                            Attachment policySpecFileDetail, InputStream policyTemplateFileInputStream,
+                                            Attachment policyTemplateFileDetail, String policyName, String flow,
+                                            MessageContext messageContext) throws APIManagementException {
+
+        String fileName = "";
+        try {
+            APIProvider apiProvider = RestApiCommonUtil.getLoggedInUserProvider();
+
+            //validate if api exists
+            APIInfo apiInfo = validateAPIExistence(apiId);
+            //validate API update operation permitted based on the LC state
+            validateAPIOperationsPerLC(apiInfo.getStatus().toString());
+
+            String organization = RestApiUtil.getValidatedOrganization(messageContext);
+            String policySpec = "";
+            String policyTemplate = "";
+            if (policySpecFileInputStream != null) {
+                policySpec = readInputStream(policySpecFileInputStream, policySpecFileDetail);
+            }
+
+            if (policyTemplateFileInputStream != null) {
+                policyTemplate = readInputStream(policyTemplateFileInputStream, policyTemplateFileDetail);
+            }
+
+            OperationPolicy operationPolicy = new OperationPolicy();
+            operationPolicy.setSpecification(policySpec);
+            operationPolicy.setTemplate(policyTemplate);
+            operationPolicy.setName(policyName);
+            operationPolicy.setFlow(flow);
+            apiProvider.addApiSpecificOperationalPolicy(apiId, operationPolicy, organization);
+
+
+            if (operationPolicy != null) {
+                String uriString = RestApiConstants.RESOURCE_PATH_API_MEDIATION
+                        .replace(RestApiConstants.APIID_PARAM, apiId)  + "/" + "operational-policy";
+                URI uri = new URI(uriString);
+                OperationPolicyInfoDTO createdPolicy = new OperationPolicyInfoDTO();
+                createdPolicy.setName(operationPolicy.getName());
+                return Response.created(uri).entity(createdPolicy).build();
+            }
+
+        } catch (APIManagementException e) {
+            //Auth failure occurs when cross tenant accessing APIs. Sends 404, since we don't need
+            // to expose the existence of the resource
+            if (RestApiUtil.isDueToResourceNotFound(e) || RestApiUtil.isDueToAuthorizationFailure(e)) {
+                RestApiUtil.handleResourceNotFoundError(RestApiConstants.RESOURCE_API, apiId, e, log);
+            } else if (isAuthorizationFailure(e)) { //this is due to access control restriction.
+                RestApiUtil.handleAuthorizationFailure(
+                        "Authorization failure while adding operational policy for the API " + apiId, e, log);
+            } else {
+                throw e;
+            }
+        } catch (URISyntaxException e) {
+            String errorMessage = "Error while getting location header for created " +
+                    "operational policy " + fileName;
+            RestApiUtil.handleInternalServerError(errorMessage, e, log);
+        } catch (Exception e) {
+            RestApiUtil.handleInternalServerError("An Error has occurred while adding operational policy", e, log);
+        }
+        return null;
+    }
+
+    public String readInputStream (InputStream fileInputStream, Attachment fileDetail) throws IOException {
+        String content = null;
+        if (fileInputStream != null) {
+            String fileName = fileDetail.getDataHandler().getName();
+
+            String fileContentType = URLConnection.guessContentTypeFromName(fileName);
+
+            if (org.apache.commons.lang3.StringUtils.isBlank(fileContentType)) {
+                fileContentType = fileDetail.getContentType().toString();
+            }
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            IOUtils.copy(fileInputStream, outputStream);
+            byte[] sequenceBytes = outputStream.toByteArray();
+            InputStream inSequenceStream = new ByteArrayInputStream(sequenceBytes);
+            content = IOUtils.toString(inSequenceStream, StandardCharsets.UTF_8.name());
+        }
+        return content;
     }
 
     /**

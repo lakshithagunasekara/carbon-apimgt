@@ -3632,4 +3632,13 @@ public class SQLConstants {
                 "   UUID = ? AND TENANT_ID = ?";
 
     }
+
+    public static class OperationPoliciesConstants {
+        public static final String ADD_API_SPECIFIC_POLICY =
+                "INSERT INTO AM_API_OPERATION_POLICY (API_UUID,POLICY_NAME,FLOW,POLICY_SPEC,POLICY_TEMPLATE) VALUES (?,?,?,?,?)";
+        public static final String GET_API_SPECIFIC_POLICY =
+                "SELECT POLICY_ID FROM AM_API_OPERATION_POLICY WHERE API_UUID = ? AND POLICY_NAME = ?";
+        public static final String UPDATE_API_SPECIFIC_POLICY =
+                "UPDATE AM_API_OPERATION_POLICY SET FLOW = ?, POLICY_SPEC = ?, POLICY_TEMPLATE = ? WHERE API_UUID =? AND POLICY_NAME =?";
+    }
 }

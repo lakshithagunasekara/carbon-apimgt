@@ -50,6 +50,7 @@ import org.wso2.carbon.apimgt.api.MonetizationException;
 import org.wso2.carbon.apimgt.api.UnsupportedPolicyTypeException;
 import org.wso2.carbon.apimgt.api.WorkflowResponse;
 import org.wso2.carbon.apimgt.api.doc.model.APIResource;
+import org.wso2.carbon.apimgt.api.doc.model.Operation;
 import org.wso2.carbon.apimgt.api.dto.CertificateInformationDTO;
 import org.wso2.carbon.apimgt.api.dto.CertificateMetadataDTO;
 import org.wso2.carbon.apimgt.api.dto.ClientCertificateDTO;
@@ -83,6 +84,7 @@ import org.wso2.carbon.apimgt.api.model.KeyManager;
 import org.wso2.carbon.apimgt.api.model.LifeCycleEvent;
 import org.wso2.carbon.apimgt.api.model.Mediation;
 import org.wso2.carbon.apimgt.api.model.Monetization;
+import org.wso2.carbon.apimgt.api.model.OperationPolicy;
 import org.wso2.carbon.apimgt.api.model.Provider;
 import org.wso2.carbon.apimgt.api.model.ResourceFile;
 import org.wso2.carbon.apimgt.api.model.ResourcePath;
@@ -8348,6 +8350,30 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             }
         }
         return null;
+    }
+
+    @Override
+    public boolean addApiSpecificOperationalPolicy(String apiUUID, OperationPolicy operationPolicy, String organization)
+            throws APIManagementException {
+
+        ByteArrayInputStream policySpecInputStream = null;
+        ByteArrayInputStream policyTemplateInputStream = null;
+
+        if (operationPolicy.getSpecification() != null) {
+
+            byte[] policySpecAsBytes = operationPolicy.getSpecification().getBytes();
+            policySpecInputStream = new ByteArrayInputStream(policySpecAsBytes);
+        }
+
+        if (operationPolicy.getTemplate() != null) {
+            byte[] policyTemplateAsBytes = operationPolicy.getTemplate().getBytes();
+            policyTemplateInputStream = new ByteArrayInputStream(policyTemplateAsBytes);
+        }
+
+        return apiMgtDAO.addAPISpecificOperationPolicy(apiUUID, operationPolicy, policySpecInputStream, policyTemplateInputStream);
+
+
+
     }
 
     @Override

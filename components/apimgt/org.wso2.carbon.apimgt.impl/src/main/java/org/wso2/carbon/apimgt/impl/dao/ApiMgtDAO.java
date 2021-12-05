@@ -63,6 +63,7 @@ import org.wso2.carbon.apimgt.api.model.LifeCycleEvent;
 import org.wso2.carbon.apimgt.api.model.MonetizationUsagePublishInfo;
 import org.wso2.carbon.apimgt.api.model.OAuthAppRequest;
 import org.wso2.carbon.apimgt.api.model.OAuthApplicationInfo;
+import org.wso2.carbon.apimgt.api.model.OperationPolicy;
 import org.wso2.carbon.apimgt.api.model.Pagination;
 import org.wso2.carbon.apimgt.api.model.ResourcePath;
 import org.wso2.carbon.apimgt.api.model.Scope;
@@ -113,6 +114,7 @@ import org.wso2.carbon.apimgt.impl.notifier.events.SubscriptionEvent;
 import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.impl.utils.ApplicationUtils;
+import org.wso2.carbon.apimgt.impl.utils.GatewayArtifactsMgtDBUtil;
 import org.wso2.carbon.apimgt.impl.utils.RemoteUserManagerClient;
 import org.wso2.carbon.apimgt.impl.utils.VHostUtils;
 import org.wso2.carbon.apimgt.impl.workflow.WorkflowConstants;
@@ -17620,5 +17622,64 @@ public class ApiMgtDAO {
 
             this.subscriptionStatus = subscriptionStatus;
         }
+    }
+
+    public boolean isAPISpecificOperationPolicyExists(Connection connection, String apiUUID, String policyName)
+            throws APIManagementException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(SQLConstants.OperationPoliciesConstants.GET_API_SPECIFIC_POLICY)) {
+            preparedStatement.setString(1, apiUUID);
+            preparedStatement.setString(2, policyName);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            handleException("Failed to get operation policy status of API " + apiUUID + " for policy " + policyName, e);
+        }
+        return false;
+    }
+
+    public boolean updateAPISpecificOperationPolicyExists(Connection connection, String apiUUID, OperationPolicy policy, ByteArrayInputStream specification, ByteArrayInputStream template)
+            throws APIManagementException {
+        boolean result = false;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(SQLConstants.OperationPoliciesConstants.UPDATE_API_SPECIFIC_POLICY)) {
+            preparedStatement.setString(1, policy.getFlow());
+            preparedStatement.setBinaryStream(2, specification);
+            preparedStatement.setBinaryStream(3, template);
+            preparedStatement.setString(4, apiUUID);
+            preparedStatement.setString(5, policy.getName());
+            result = preparedStatement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            handleException("Failed to update operation policy of API " + apiUUID + " for policy " + policy.getName(), e);
+        }
+        return result;
+    }
+
+    public boolean addAPISpecificOperationPolicy(String apiUUID, OperationPolicy policy, ByteArrayInputStream specification, ByteArrayInputStream template)
+            throws APIManagementException {
+            String dbQuery = SQLConstants.OperationPoliciesConstants.ADD_API_SPECIFIC_POLICY;
+        try (Connection connection = APIMgtDBUtil.getConnection()){
+
+            connection.setAutoCommit(false);
+            boolean result = false;
+            if (isAPISpecificOperationPolicyExists(connection, apiUUID, policy.getName())) {
+                updateAPISpecificOperationPolicyExists(connection, apiUUID, policy, specification, template);
+            } else {
+                try (PreparedStatement statement = connection.prepareStatement(dbQuery)) {
+                    statement.setString(1, apiUUID);
+                    statement.setString(2, policy.getName());
+                    statement.setString(3, policy.getFlow());
+                    statement.setBinaryStream(4, specification);
+                    statement.setBinaryStream(5, template);
+                    result = statement.executeUpdate() == 1;
+                    connection.commit();
+                }
+            }
+            return result;
+        } catch (SQLException | APIManagementException e) {
+            handleException("Failed to add operation policy of API " + apiUUID + " for policy " + policy.getName(), e);
+        }
+        return true;
     }
 }
