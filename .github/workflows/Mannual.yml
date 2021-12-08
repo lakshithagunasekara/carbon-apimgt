@@ -1,4 +1,4 @@
-name: Integration tests for ${{ github.event.inputs.component_repo_owner }}/${{ github.event.inputs.component_repo_name }}/${{ github.event.inputs.component_branch }} and ${{ github.event.inputs.product_repo_owner }}/${{ github.event.inputs.product_repo_name }}/${{ github.event.inputs.product_branch }}
+name: Mannual Integration tests 
 on: 
   workflow_dispatch:
     inputs:
