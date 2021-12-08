@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.apimgt.impl.dao.constants;
 
+import org.wso2.carbon.apimgt.api.model.OperationPolicy;
 import org.wso2.carbon.apimgt.api.model.policy.PolicyConstants;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 
@@ -3630,5 +3631,79 @@ public class SQLConstants {
         public static final String GET_SERVICE_KEY_BY_SERVICE_UUID = "SELECT SERVICE_KEY FROM AM_SERVICE_CATALOG WHERE" +
                 "   UUID = ? AND TENANT_ID = ?";
 
+    }
+
+    /**
+     * Static class to hold database queries related to AM_API_OPERATION_POLICY_MAPPING table
+     */
+    public static class OperationPolicyConstants {
+        public static final String ADD_API_OPERATION_POLICY =
+                "INSERT INTO AM_API_OPERATION_POLICY_MAPPING " +
+                "(URL_MAPPING_ID, POLICY_TYPE, DIRECTION, PARAMETERS) " +
+                "VALUES (?,?,?,?)";
+
+        public static final String GET_OPERATION_POLICIES_PER_URL_TEMPLATES_OF_API_SQL =
+                " SELECT " +
+                " AUM.URL_MAPPING_ID," +
+                " AUM.URL_PATTERN," +
+                " AUM.HTTP_METHOD," +
+                " OPM.POLICY_TYPE," +
+                " OPM.PARAMETERS," +
+                " OPM.DIRECTION" +
+                " FROM " +
+                " AM_API_URL_MAPPING AUM " +
+                " INNER JOIN AM_API API ON AUM.API_ID = API.API_ID " +
+                " INNER JOIN AM_API_OPERATION_POLICY_MAPPING OPM ON AUM.URL_MAPPING_ID = OPM.URL_MAPPING_ID" +
+                " WHERE " +
+                " API.API_ID = ? AND " +
+                " AUM.REVISION_UUID IS NULL " +
+                " ORDER BY AUM.URL_MAPPING_ID ASC ";
+
+        public static final String GET_OPERATION_POLICIES_PER_URL_TEMPLATES_OF_API_PRODUCT_SQL =
+                " SELECT " +
+                " AUM.URL_MAPPING_ID," +
+                " AUM.URL_PATTERN," +
+                " AUM.HTTP_METHOD," +
+                " OPM.POLICY_TYPE," +
+                " OPM.PARAMETERS," +
+                " OPM.DIRECTION" +
+                " FROM " +
+                " AM_API_URL_MAPPING AUM " +
+                " INNER JOIN AM_API_OPERATION_POLICY_MAPPING OPM ON AUM.URL_MAPPING_ID = OPM.URL_MAPPING_ID" +
+                " WHERE " +
+                " AUM.REVISION_UUID = ? " +
+                " ORDER BY AUM.URL_MAPPING_ID ASC ";
+
+        public static final String GET_OPERATION_POLICIES_PER_URL_TEMPLATES_OF_API_REVISION_SQL =
+                " SELECT " +
+                " AUM.URL_MAPPING_ID," +
+                " AUM.URL_PATTERN," +
+                " AUM.HTTP_METHOD," +
+                " OPM.POLICY_TYPE," +
+                " OPM.PARAMETERS," +
+                " OPM.DIRECTION" +
+                " FROM " +
+                " AM_API_URL_MAPPING AUM " +
+                " INNER JOIN AM_API API ON AUM.API_ID = API.API_ID " +
+                " INNER JOIN AM_API_OPERATION_POLICY_MAPPING OPM ON AUM.URL_MAPPING_ID = OPM.URL_MAPPING_ID" +
+                " WHERE " +
+                " API.API_ID = ? AND " +
+                " AUM.REVISION_UUID = ? " +
+                " ORDER BY AUM.URL_MAPPING_ID ASC ";
+
+        public static final String GET_OPERATION_POLICIES_BY_URI_TEMPLATE_ID =
+                "SELECT " +
+                "OPM.POLICY_TYPE, OPM.DIRECTION, OPM.PARAMETERS " +
+                "FROM " +
+                "AM_API_URL_MAPPING AUM INNER JOIN AM_API_OPERATION_POLICY_MAPPING OPM " +
+                "ON AUM.URL_MAPPING_ID = OPM.URL_MAPPING_ID " +
+                "WHERE AUM.URL_MAPPING_ID = ?";
+
+        public static final String GET_OPERATION_POLICY_UUID =
+                "SELECT OPERATION_POLICY_MAPPING_ID FROM AM_API_OPERATION_POLICY_MAPPING WHERE " +
+                "URL_MAPPING_ID = ? AND " +
+                "POLICY_TYPE = ? AND " +
+                "DIRECTION = ? AND " +
+                "PARAMETERS = ? ";
     }
 }

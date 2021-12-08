@@ -1751,7 +1751,6 @@ public interface APIProvider extends APIManager {
     void deleteAPIRevision(String apiId, String apiRevisionId, String organization) throws APIManagementException;
 
     /**
-<<<<<<<<< Temporary merge branch 1
      * This method updates the AsyncApi definition in registry
      *
      * @param api   API
@@ -1829,4 +1828,31 @@ public interface APIProvider extends APIManager {
      * @return List of environments related to the given tenant
      */
     Environment getEnvironment(String organization, String uuid) throws APIManagementException;
+    /**
+     * Set existing operation policy mapping to the URI Templates
+     *
+     * @param apiId         API UUID
+     * @param uriTemplates  Set of URI Templates
+     * @throws APIManagementException
+     */
+    void setOperationPoliciesToURITemplates(String apiId, Set<URITemplate> uriTemplates) throws APIManagementException;
+
+    /**
+     * Add Operation Policy
+     *
+     * @param urlMappingId  URL Mapping ID
+     * @param policy        Operation Policy to be added
+     * @return              Policy Id
+     * @throws APIManagementException
+     */
+    int addOperationPolicy(int urlMappingId, OperationPolicy policy) throws APIManagementException;
+
+    /**
+     * Get URI Templates of API identified by the UUID
+     *
+     * @param uuid      API UUID
+     * @return
+     * @throws APIManagementException
+     */
+    Set<URITemplate> getURITemplatesOfAPI(String uuid) throws APIManagementException;
 }

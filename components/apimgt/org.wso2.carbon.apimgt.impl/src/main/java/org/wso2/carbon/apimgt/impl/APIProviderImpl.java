@@ -83,6 +83,7 @@ import org.wso2.carbon.apimgt.api.model.KeyManager;
 import org.wso2.carbon.apimgt.api.model.LifeCycleEvent;
 import org.wso2.carbon.apimgt.api.model.Mediation;
 import org.wso2.carbon.apimgt.api.model.Monetization;
+import org.wso2.carbon.apimgt.api.model.OperationPolicy;
 import org.wso2.carbon.apimgt.api.model.Provider;
 import org.wso2.carbon.apimgt.api.model.ResourceFile;
 import org.wso2.carbon.apimgt.api.model.ResourcePath;
@@ -227,6 +228,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -661,6 +663,9 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         //Validate Transports
         validateAndSetTransports(api);
         validateAndSetAPISecurity(api);
+
+        //Validate Operation Mediation Policies
+        validateOperationPolicyParameters(api);
 
         RegistryService registryService = ServiceReferenceHolder.getInstance().getRegistryService();
 
@@ -1374,6 +1379,9 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         }
         int tenantId = APIUtil.getInternalOrganizationId(organization);
         validateResourceThrottlingTiers(api, tenantDomain);
+
+        //Validate Operation Mediation Policies
+        validateOperationPolicyParameters(api);
 
         //get product resource mappings on API before updating the API. Update uri templates on api will remove all
         //product mappings as well.
@@ -2475,6 +2483,163 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             }
         } else {
             apiProduct.setTransports(Constants.TRANSPORT_HTTP + ',' + Constants.TRANSPORT_HTTPS);
+        }
+    }
+
+    private void validateOperationPolicyParameters(API api) throws APIManagementException {
+        Set<URITemplate> uriTemplates = api.getUriTemplates();
+        String apiId = api.getUuid();
+
+        if (APIConstants.API_TYPE_WS.equals(api.getType()) || APIConstants.API_TYPE_SSE.equals(api.getType())
+                || APIConstants.API_TYPE_WEBSUB.equals(api.getType())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Operation policies are not allowed for " + api.getType() + " APIs");
+            }
+        }
+
+        for (URITemplate uriTemplate : uriTemplates) {
+            List<OperationPolicy> operationPolicies = uriTemplate.getOperationPolicies();
+
+            int rewriteMethodPolicyCount = 0;
+
+            if (operationPolicies != null && !operationPolicies.isEmpty()) {
+                for (OperationPolicy policy : operationPolicies) {
+                    if (OperationPolicy.PolicyType.SET_HEADER.equals(policy.getPolicyType())) {
+                        validateSetHeaderPolicy(policy);
+                    } else if (OperationPolicy.PolicyType.REMOVE_HEADER.equals(policy.getPolicyType())) {
+                        validateRemoveHeaderPolicy(policy);
+                    } else if (OperationPolicy.PolicyType.REWRITE_HTTP_METHOD.equals(policy.getPolicyType())) {
+                        if (++rewriteMethodPolicyCount > 1) {
+                            throw new APIManagementException(
+                                    "Resource" + uriTemplate.getUriTemplate() + ":" + uriTemplate.getHTTPVerb() +
+                                            " has more than one REWRITE_HTTP_METHOD policy");
+                        }
+                        validateRewriteHTTPMethodPolicy(policy);
+                    } else if (OperationPolicy.PolicyType.REWRITE_RESOURCE_PATH.equals(policy.getPolicyType())) {
+                        validateRewriteResourcePathPolicy(policy);
+                    } else if (OperationPolicy.PolicyType.ADD_QUERY_PARAM.equals(policy.getPolicyType())) {
+                        validateAddQueryParamPolicy(policy);
+                    } else if (OperationPolicy.PolicyType.REMOVE_QUERY_PARAM.equals(policy.getPolicyType())) {
+                        validateRemoveQueryParamPolicy(policy);
+                    } else if (OperationPolicy.PolicyType.CALL_INTERCEPTOR_SERVICE.equals(policy.getPolicyType())) {
+
+                    } else {
+                        throw new APIManagementException("Unsupported Operation Policy Type " + policy.getPolicyType());
+                    }
+                }
+            }
+        }
+    }
+
+    private void validateSetHeaderPolicy(OperationPolicy policy) throws APIManagementException {
+        Map<String, Object> parameters = policy.getParameters();
+        if (!parameters.containsKey(APIConstants.HEADER_NAME_PARAM) ||
+                StringUtils.isEmpty((String) parameters.get(APIConstants.HEADER_NAME_PARAM))){
+            throw new APIManagementException("Required 'headerName' parameter for SET_HEADER "
+                    + "operation policy is either missing or empty", ExceptionCodes
+                    .from(ExceptionCodes.INVALID_OPERATION_POLICY_PARAMETERS, "headerName", "SET_HEADER"));
+        }
+
+        if (!parameters.containsKey(APIConstants.HEADER_VALUE_PARAM) || StringUtils
+                .isEmpty((String) parameters.get(APIConstants.HEADER_VALUE_PARAM))) {
+            throw new APIManagementException(
+                    "Required 'headerValue' parameter for SET_HEADER " + "operation policy is either missing or empty",
+                    ExceptionCodes
+                            .from(ExceptionCodes.INVALID_OPERATION_POLICY_PARAMETERS, "headerValue", "SET_HEADER"));
+        }
+    }
+
+    private void validateRemoveHeaderPolicy(OperationPolicy policy) throws APIManagementException {
+        Map<String, Object> parameters = policy.getParameters();
+        if (!parameters.containsKey(APIConstants.HEADER_NAME_PARAM) || StringUtils
+                .isEmpty((String) parameters.get(APIConstants.HEADER_NAME_PARAM))) {
+            throw new APIManagementException(
+                    "Required 'headerName' parameter for REMOVE_HEADER operation policy is either missing or empty",
+                    ExceptionCodes
+                            .from(ExceptionCodes.INVALID_OPERATION_POLICY_PARAMETERS, "headerName", "REMOVE_HEADER"));
+        }
+    }
+
+    private void validateRewriteHTTPMethodPolicy(OperationPolicy policy) throws APIManagementException {
+        Map<String, Object> parameters = policy.getParameters();
+
+        if (APIConstants.OPERATION_SEQUENCE_TYPE_OUT.equals(policy.getDirection())) {
+            throw new APIManagementException("REWRITE_HTTP_METHOD policy is not allowed in response flow",
+                    ExceptionCodes.from(ExceptionCodes.OPERATION_POLICY_NOT_ALLOWED_IN_RESPONSE_FLOW,
+                            policy.getPolicyType().toString()));
+        }
+
+        if (!parameters.containsKey(APIConstants.HTTP_METHOD_PARAM) ||
+                StringUtils.isEmpty((String)parameters.get(APIConstants.HTTP_METHOD_PARAM))) {
+            throw new APIManagementException(
+                    "Required 'httpMethod' parameter for REWRITE_HTTP_METHOD operation policy is either missing or empty",
+                    ExceptionCodes.from(ExceptionCodes.INVALID_OPERATION_POLICY_PARAMETERS, "httpMethod",
+                            "REWRITE_HTTP_METHOD"));
+        } else if (!APIConstants.SUPPORTED_METHODS
+                .contains(((String) parameters.get(APIConstants.HTTP_METHOD_PARAM)).toLowerCase())) {
+            throw new APIManagementException(
+                    "Unsupported HTTP method provided for REWRITE_HTTP_METHOD operation " + "policy",
+                    ExceptionCodes.from(ExceptionCodes.UNSUPPORTED_HTTP_VERB));
+        }
+    }
+
+    private void validateRewriteResourcePathPolicy(OperationPolicy policy) throws APIManagementException {
+        Map<String, Object> parameters = policy.getParameters();
+
+        if (APIConstants.OPERATION_SEQUENCE_TYPE_OUT.equals(policy.getDirection())) {
+            throw new APIManagementException("REWRITE_RESOURCE_PATH policy is not allowed in response flow",
+                    ExceptionCodes.from(ExceptionCodes.OPERATION_POLICY_NOT_ALLOWED_IN_RESPONSE_FLOW,
+                            policy.getPolicyType().toString()));
+        }
+
+        if (!parameters.containsKey(APIConstants.RESOURCE_PATH_PARAM) || StringUtils
+                .isEmpty((String) parameters.get(APIConstants.RESOURCE_PATH_PARAM))) {
+            throw new APIManagementException("Required 'resourcePath' parameter for REWRITE_RESOURCE_PATH "
+                    + "operation policy is either missing or empty", ExceptionCodes
+                    .from(ExceptionCodes.INVALID_OPERATION_POLICY_PARAMETERS, "resourcePath", "REWRITE_RESOURCE_PATH"));
+        }
+    }
+
+    private void validateAddQueryParamPolicy(OperationPolicy policy) throws APIManagementException {
+        Map<String, Object> parameters = policy.getParameters();
+
+        if (APIConstants.OPERATION_SEQUENCE_TYPE_OUT.equals(policy.getDirection())) {
+            throw new APIManagementException("ADD_QUERY_PARAM policy is not allowed in response flow",
+                    ExceptionCodes.from(ExceptionCodes.OPERATION_POLICY_NOT_ALLOWED_IN_RESPONSE_FLOW,
+                            policy.getPolicyType().toString()));
+        }
+
+        if (!parameters.containsKey(APIConstants.QUERY_PARAM_NAME) ||
+                StringUtils.isEmpty((String) parameters.get(APIConstants.QUERY_PARAM_NAME))){
+            throw new APIManagementException("Required 'paramName' parameter for ADD_QUERY_PARAM "
+                    + "operation policy is either missing or empty", ExceptionCodes
+                    .from(ExceptionCodes.INVALID_OPERATION_POLICY_PARAMETERS, "paramName", "ADD_QUERY_PARAM"));
+        }
+
+        if (!parameters.containsKey(APIConstants.QUERY_PARAM_VALUE) || StringUtils
+                .isEmpty((String) parameters.get(APIConstants.QUERY_PARAM_VALUE))) {
+            throw new APIManagementException("Required 'paramValue' parameter for ADD_QUERY_PARAM "
+                    + "operation policy is either missing or empty", ExceptionCodes
+                    .from(ExceptionCodes.INVALID_OPERATION_POLICY_PARAMETERS, "paramValue", "ADD_QUERY_PARAM"));
+        }
+    }
+
+
+    private void validateRemoveQueryParamPolicy(OperationPolicy policy) throws APIManagementException {
+        Map<String, Object> parameters = policy.getParameters();
+
+        if (APIConstants.OPERATION_SEQUENCE_TYPE_OUT.equals(policy.getDirection())) {
+            throw new APIManagementException("REMOVE_QUERY_PARAM policy is not allowed in response flow",
+                    ExceptionCodes.from(ExceptionCodes.OPERATION_POLICY_NOT_ALLOWED_IN_RESPONSE_FLOW,
+                            policy.getPolicyType().toString()));
+        }
+
+        if (!parameters.containsKey(APIConstants.QUERY_PARAM_NAME) || StringUtils
+                .isEmpty((String) parameters.get(APIConstants.QUERY_PARAM_NAME))) {
+            throw new APIManagementException(
+                    "Required 'paramName' parameter for REMOVE_QUERY_PARAM operation policy is either missing or empty",
+                    ExceptionCodes
+                            .from(ExceptionCodes.INVALID_OPERATION_POLICY_PARAMETERS, "paramName", "REMOVE_QUERY_PARAM"));
         }
     }
 
@@ -9362,5 +9527,41 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             }
         }
         return env;
+    }
+
+    @Override
+    public void setOperationPoliciesToURITemplates(String apiId, Set<URITemplate> uriTemplates)
+            throws APIManagementException {
+        Set<URITemplate> uriTemplatesWithPolicies = apiMgtDAO.getURITemplatesWithOperationPolicies(apiId);
+
+        if (!uriTemplatesWithPolicies.isEmpty()) {
+            //This is a temporary map to keep operation policies list of URI Templates against the URI mapping ID
+            Map<String, List<OperationPolicy>> operationPoliciesMap = new HashMap<>();
+
+            for (URITemplate uriTemplate : uriTemplatesWithPolicies) {
+                String key = uriTemplate.getHTTPVerb() + ":" + uriTemplate.getUriTemplate();
+                List<OperationPolicy> operationPolicies = uriTemplate.getOperationPolicies();
+                if (!operationPolicies.isEmpty()) {
+                    operationPoliciesMap.put(key, operationPolicies);
+                }
+            }
+
+            for (URITemplate uriTemplate : uriTemplates) {
+                String key = uriTemplate.getHTTPVerb() + ":" + uriTemplate.getUriTemplate();
+                if (operationPoliciesMap.containsKey(key)) {
+                    uriTemplate.setOperationPolicies(operationPoliciesMap.get(key));
+                }
+            }
+        }
+    }
+
+    @Override
+    public int addOperationPolicy(int urlMappingId, OperationPolicy policy) throws APIManagementException {
+        return apiMgtDAO.addOperationPolicy(urlMappingId, policy);
+    }
+
+    @Override
+    public Set<URITemplate> getURITemplatesOfAPI(String uuid) throws APIManagementException {
+        return apiMgtDAO.getURITemplatesOfAPI(uuid);
     }
 }

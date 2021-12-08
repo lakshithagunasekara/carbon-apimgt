@@ -89,14 +89,13 @@ public class TemplateBuilderUtil {
     private static final Log log = LogFactory.getLog(TemplateBuilderUtil.class);
 
     public static APITemplateBuilderImpl getAPITemplateBuilder(API api, String tenantDomain,
-                                                               List<ClientCertificateDTO> clientCertificateDTOS,
-                                                               List<SoapToRestMediationDto> soapToRestInMediationDtos,
-                                                               List<SoapToRestMediationDto> soapToRestMediationDtos)
+            List<ClientCertificateDTO> clientCertificateDTOS, List<SoapToRestMediationDto> soapToRestInMediationDtos,
+            List<SoapToRestMediationDto> soapToRestMediationDtos)
             throws APIManagementException {
 
         int tenantId = APIUtil.getTenantIdFromTenantDomain(tenantDomain);
-        APITemplateBuilderImpl vtb =
-                new APITemplateBuilderImpl(api, soapToRestInMediationDtos, soapToRestMediationDtos);
+        APITemplateBuilderImpl vtb = new APITemplateBuilderImpl(api, soapToRestInMediationDtos,
+                soapToRestMediationDtos);
         Map<String, String> latencyStatsProperties = new HashMap<String, String>();
         latencyStatsProperties.put(APIConstants.API_UUID, api.getUUID());
         if (!APIUtil.isStreamingApi(api)) {
@@ -265,8 +264,7 @@ public class TemplateBuilderUtil {
     }
 
     public static APITemplateBuilderImpl getAPITemplateBuilder(APIProduct apiProduct, String tenantDomain,
-                                                               List<ClientCertificateDTO> clientCertificateDTOS,
-                                                               Map<String, APIDTO> associatedAPIMap)
+            List<ClientCertificateDTO> clientCertificateDTOS, Map<String, APIDTO> associatedAPIMap)
             throws APIManagementException {
 
         int tenantId = APIUtil.getTenantIdFromTenantDomain(tenantDomain);
@@ -437,8 +435,9 @@ public class TemplateBuilderUtil {
         // add new property for entires that has a __display suffix
         JSONObject modifiedProperties = getModifiedProperties(originalProperties);
         api.setAdditionalProperties(modifiedProperties);
-        APITemplateBuilder apiTemplateBuilder = TemplateBuilderUtil.getAPITemplateBuilder(api, tenantDomain,
-                clientCertificatesDTOList, soapToRestInMediationDtoList, soapToRestOutMediationDtoList);
+        APITemplateBuilder apiTemplateBuilder = TemplateBuilderUtil
+                .getAPITemplateBuilder(api, tenantDomain, clientCertificatesDTOList, soapToRestInMediationDtoList,
+                        soapToRestOutMediationDtoList);
         GatewayAPIDTO gatewaAPIDto = createAPIGatewayDTOtoPublishAPI(environment, api, apiTemplateBuilder, tenantDomain,
                 extractedFolderPath, apidto, clientCertificatesDTOList);
         // Reset the additional properties to the original values
@@ -526,10 +525,8 @@ public class TemplateBuilderUtil {
     }
 
     private static GatewayAPIDTO createAPIGatewayDTOtoPublishAPI(Environment environment, APIProduct apiProduct,
-                                                                 APITemplateBuilder builder,
-                                                                 String tenantDomain,
-                                                                 Map<String, APIDTO> associatedAPIsMap,
-                                                                 List<ClientCertificateDTO> clientCertificatesDTOList)
+            APITemplateBuilder builder, String tenantDomain, Map<String, APIDTO> associatedAPIsMap,
+            List<ClientCertificateDTO> clientCertificatesDTOList)
             throws APITemplateException, XMLStreamException, APIManagementException {
 
         APIProductIdentifier id = apiProduct.getId();
@@ -588,10 +585,8 @@ public class TemplateBuilderUtil {
     }
 
     private static GatewayAPIDTO createAPIGatewayDTOtoPublishAPI(Environment environment, API api,
-                                                                 APITemplateBuilder builder,
-                                                                 String tenantDomain, String extractedPath,
-                                                                 APIDTO apidto,
-                                                                 List<ClientCertificateDTO> clientCertificatesDTOList)
+            APITemplateBuilder builder, String tenantDomain, String extractedPath, APIDTO apidto,
+            List<ClientCertificateDTO> clientCertificatesDTOList)
             throws APIManagementException, APITemplateException, XMLStreamException {
 
         GatewayAPIDTO gatewayAPIDTO = new GatewayAPIDTO();
