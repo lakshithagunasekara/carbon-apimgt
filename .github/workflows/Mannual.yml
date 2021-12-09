@@ -6,7 +6,7 @@ on:
     inputs:
       component_repo_owner:
         description: 'Owner Of component repo'     
-        required: true
+        required: false
         default: 'wso2'
       component_repo_name:
         description: 'Name Of the component repo'     
@@ -14,11 +14,11 @@ on:
         default: 'carbon-apimgt' 
       component_branch:
         description: 'Component branch Name'     
-        required: true
+        required: false
         default: 'master'
       product_repo_owner:
         description: 'Owner Of product repo'     
-        required: true
+        required: false
         default: 'wso2'
       product_repo_name:
         description: 'Name Of product repo'     
@@ -26,7 +26,7 @@ on:
         default: 'product-apim' 
       product_branch:
         description: 'Product branch Name'     
-        required: true
+        required: false
         default: 'master'
 jobs:
   build-carbon:
