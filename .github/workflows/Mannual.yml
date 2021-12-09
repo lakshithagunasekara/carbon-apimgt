@@ -1,5 +1,7 @@
 name: Mannual Integration tests 
 on: 
+  schedule:
+    - cron:  '0 20 * * *'
   workflow_dispatch:
     inputs:
       component_repo_owner:
