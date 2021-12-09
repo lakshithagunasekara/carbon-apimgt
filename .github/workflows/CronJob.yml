@@ -1,4 +1,4 @@
-name: Mannual Integration tests 
+name: Cron job
 on: 
   schedule:
     - cron:  '0 01 * * *'
