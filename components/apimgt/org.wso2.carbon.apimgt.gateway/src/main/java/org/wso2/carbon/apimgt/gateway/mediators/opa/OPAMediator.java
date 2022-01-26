@@ -33,6 +33,9 @@ public class OPAMediator extends AbstractMediator  {
     public static final int SERVER_RESPONSE_BAD_REQUEST = 400;
     public static final int SERVER_RESPONSE_SERVER_ERROR = 500;
 
+    private String opaServerUrl = null;
+    private String opaToken = null;
+
     public void init(){
     }
 
@@ -187,4 +190,23 @@ public class OPAMediator extends AbstractMediator  {
 
     }
 
+    public String getOpaServerUrl() {
+
+        return opaServerUrl;
+    }
+
+    public void setOpaServerUrl(String opaServerUrl) {
+
+        this.opaServerUrl = opaServerUrl;
+    }
+
+    public String getOpaToken() {
+
+        return opaToken;
+    }
+
+    public void setOpaToken(String opaToken) {
+
+        this.opaToken = opaToken;
+    }
 }
