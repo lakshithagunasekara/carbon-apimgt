@@ -10,6 +10,7 @@ import org.apache.http.ProtocolVersion;
 import org.apache.synapse.MessageContext;
 import org.apache.synapse.core.axis2.Axis2MessageContext;
 import org.apache.synapse.mediators.opa.OPARequestGenerator;
+import org.apache.synapse.mediators.opa.OPASecurityException;
 import org.apache.synapse.transport.passthru.ServerWorker;
 import org.apache.synapse.transport.passthru.SourceRequest;
 import org.json.simple.JSONObject;
@@ -27,7 +28,8 @@ public class APIMOPARequestGenerator implements OPARequestGenerator{
     public static final String API_BASEPATH_STRING = "TransportInURL";
 
     @Override
-    public String createRequest(MessageContext messageContext, Map<String, Object> advancedProperties) {
+    public String createRequest(String s, String s1, Map<String, Object> map, MessageContext messageContext)
+            throws OPASecurityException {
 
         JSONObject opaPayload = new JSONObject();
 
@@ -68,27 +70,27 @@ public class APIMOPARequestGenerator implements OPARequestGenerator{
     }
 
     @Override
-    public boolean handleResponse(MessageContext messageContext, String responseString) {
-        boolean serverResponse = true;
-        if (responseString.equals("{}")) {
-            //The policy for this API has not been created at the OPA server. Request will be sent to
-            // backend without validation
+    public boolean handleResponse(String policyName, String rule, String opaResponse, MessageContext messageContext)
+            throws OPASecurityException {
+        if (opaResponse.equals("{}")) {
             if (log.isDebugEnabled()) {
-                log.debug("OPA Policy was not defined for the API ");
+                log.debug("Empty result received for the rule " + rule + " of policy " + policyName);
             }
+            throw new OPASecurityException(OPASecurityException.OPA_RESPONSE_ERROR,
+                    "Empty result received for the OPA policy rule");
         } else {
-            JSONParser parser = new JSONParser();
-            try {
-                JSONObject responseObject = (JSONObject) parser.parse(responseString);
-                Object resultObject = responseObject.get("result");
-                if (resultObject != null) {
-                    serverResponse = JavaUtils.isTrueExplicitly(resultObject);
+            org.json.JSONObject responseObject = new org.json.JSONObject(opaResponse);
+            Object resultObject = responseObject.get(rule);
+            if (resultObject != null) {
+                if (JavaUtils.isTrueExplicitly(resultObject)) {
+                    return true;
+                } else {
+                    throw new OPASecurityException(OPASecurityException.ACCESS_REVOKED, "Access revoked");
                 }
-            } catch (ParseException e) {
-                log.error("Parsing exception for response");
             }
+            throw new OPASecurityException(OPASecurityException.OPA_RESPONSE_ERROR,
+                    "Specified rule is not included in the OPA server response");
         }
-        return serverResponse;
     }
 
     public String getIp(org.apache.axis2.context.MessageContext axis2MessageContext) {
