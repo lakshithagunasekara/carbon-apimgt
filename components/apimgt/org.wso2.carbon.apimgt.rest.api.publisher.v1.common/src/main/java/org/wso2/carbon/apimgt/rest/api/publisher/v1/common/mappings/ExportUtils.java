@@ -641,6 +641,14 @@ public class ExportUtils {
                                         apiProvider.getAPISpecificOperationPolicyByPolicyId(policy.getPolicyId(), apiID,
                                                 tenantDomain, true);
                                 if (policyData != null) {
+                                    if (!policyData.getSpecification().getName().equals(policy.getPolicyName()) ||
+                                            !policyData.getSpecification().getVersion().equals(policy.getPolicyVersion())) {
+                                        throw new APIManagementException("Applied policy for uriTemplate "
+                                                + uriTemplate.getUriTemplate() + " : " + policy.getPolicyName()
+                                                + "_" + policy.getPolicyVersion() + " does not match the specification");
+                                    }
+
+
                                     exportPolicyData(policyFileName, policyData, archivePath, exportFormat);
                                     exportedPolicies.add(policy.getPolicyName());
                                 }
@@ -687,19 +695,19 @@ public class ExportUtils {
     public static void exportPolicyData(String fileName, OperationPolicyData policyData, String archivePath, ExportFormat exportFormat)
             throws APIImportExportException, IOException {
 
-        String policyName = archivePath + File.separator + ImportExportConstants.POLICIES_DIRECTORY + File.separator +
+        String fileLocation = archivePath + File.separator + ImportExportConstants.POLICIES_DIRECTORY + File.separator +
                 fileName;
         // Policy specification and definition will have the same name
         if (policyData.getSpecification() != null) {
-            CommonUtil.writeDtoToFile(policyName, exportFormat, ImportExportConstants.TYPE_POLICY_SPECIFICATION,
+            CommonUtil.writeDtoToFile(fileLocation, exportFormat, ImportExportConstants.TYPE_POLICY_SPECIFICATION,
                     policyData.getSpecification());
         }
         if (policyData.getSynapsePolicyDefinition() != null) {
-            CommonUtil.writeFile(policyName + APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION,
+            CommonUtil.writeFile(fileLocation + APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION,
                     policyData.getSynapsePolicyDefinition().getContent());
         }
         if (policyData.getCcPolicyDefinition() != null) {
-            CommonUtil.writeFile(policyName + APIConstants.CC_POLICY_DEFINITION_EXTENSION,
+            CommonUtil.writeFile(fileLocation + APIConstants.CC_POLICY_DEFINITION_EXTENSION,
                     policyData.getCcPolicyDefinition().getContent());
         }
     }

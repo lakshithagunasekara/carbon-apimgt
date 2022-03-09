@@ -2082,7 +2082,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         OperationPolicy faultFlowPolicy = null;
         // get all policies
         if (APIUtil.isSequenceDefined(api.getInSequence())) {
-            OperationPolicyData existingPolicy = getAPISpecificOperationPolicyByPolicyName(api.getInSequence(),
+            OperationPolicyData existingPolicy = getAPISpecificOperationPolicyByPolicyName(api.getInSequence(), "v1",
                     api.getUuid(), null, organization, false);
             inFlowPolicy = new OperationPolicy();
             inFlowPolicy.setPolicyName(api.getInSequence());
@@ -2094,7 +2094,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             }
         }
         if (APIUtil.isSequenceDefined(api.getOutSequence())) {
-            OperationPolicyData existingPolicy = getAPISpecificOperationPolicyByPolicyName(api.getOutSequence(),
+            OperationPolicyData existingPolicy = getAPISpecificOperationPolicyByPolicyName(api.getOutSequence(), "v1",
                     api.getUuid(), null, organization, false);
             outFlowPolicy = new OperationPolicy();
             outFlowPolicy.setPolicyName(api.getOutSequence());
@@ -2106,7 +2106,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             }
         }
         if (APIUtil.isSequenceDefined(api.getFaultSequence())) {
-            OperationPolicyData existingPolicy = getAPISpecificOperationPolicyByPolicyName(api.getFaultSequence(),
+            OperationPolicyData existingPolicy = getAPISpecificOperationPolicyByPolicyName(api.getFaultSequence(), "v1",
                     api.getUuid(), null, organization, false);
             faultFlowPolicy = new OperationPolicy();
             faultFlowPolicy.setPolicyName(api.getFaultSequence());
@@ -2161,7 +2161,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         if (APIUtil.isSequenceDefined(api.getInSequence())) {
             Mediation inSequenceMediation = api.getInSequenceMediation();
             OperationPolicyData existingPolicy =
-                    getAPISpecificOperationPolicyByPolicyName(inSequenceMediation.getName(), api.getUuid(),
+                    getAPISpecificOperationPolicyByPolicyName(inSequenceMediation.getName(), "v1", api.getUuid(),
                             null, organization, false);
             String inFlowPolicyId;
             if (existingPolicy == null) {
@@ -2180,7 +2180,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         if (APIUtil.isSequenceDefined(api.getOutSequence())) {
             Mediation outSequenceMediation = api.getOutSequenceMediation();
             OperationPolicyData existingPolicy =
-                    getAPISpecificOperationPolicyByPolicyName(outSequenceMediation.getName(), api.getUuid(),
+                    getAPISpecificOperationPolicyByPolicyName(outSequenceMediation.getName(), "v1", api.getUuid(),
                             null, organization, false);
             String outFlowPolicyId;
             if (existingPolicy == null) {
@@ -2199,7 +2199,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         if (APIUtil.isSequenceDefined(api.getFaultSequence())) {
             Mediation faultSequenceMediation = api.getFaultSequenceMediation();
             OperationPolicyData existingPolicy =
-                    getAPISpecificOperationPolicyByPolicyName(faultSequenceMediation.getName(), api.getUuid(),
+                    getAPISpecificOperationPolicyByPolicyName(faultSequenceMediation.getName(), "v1", api.getUuid(),
                             null, organization, false);
             String faultFlowPolicyId;
             if (existingPolicy == null) {
@@ -2718,7 +2718,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                             }
 
                             if (!policyData.getSpecification().getName().equals(policy.getPolicyName()) ||
-                                    !policyData.getSpecification().getVersion().equals(policy.getPolicyVersion()) ) {
+                                    !policyData.getSpecification().getVersion().equals(policy.getPolicyVersion())) {
                                 throw new APIManagementException("Applied policy for uriTemplate "
                                         + uriTemplate.getUriTemplate() + " : " + policy.getPolicyName()
                                         + "_" + policy.getPolicyVersion() + " does not match the specification");
@@ -2740,7 +2740,8 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                                 }
 
                                 if (!commonPolicyData.getSpecification().getName().equals(policy.getPolicyName()) ||
-                                        !commonPolicyData.getSpecification().getVersion().equals(policy.getPolicyVersion()) ) {
+                                        !commonPolicyData.getSpecification().getVersion()
+                                                .equals(policy.getPolicyVersion())) {
                                     throw new APIManagementException("Applied policy for uriTemplate "
                                             + uriTemplate.getUriTemplate() + " : " + policy.getPolicyName()
                                             + "_" + policy.getPolicyVersion() + " does not match the specification");
