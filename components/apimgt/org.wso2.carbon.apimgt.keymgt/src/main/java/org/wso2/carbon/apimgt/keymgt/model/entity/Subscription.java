@@ -140,9 +140,9 @@ public class Subscription implements CacheableEntity<String> {
                 ", subscriptionId='" + subscriptionId + '\'' +
                 ", policyId='" + policyId + '\'' +
                 ", apiId=" + apiId +
-                ", apiUUId='" + apiUUID + '\'' +
+                ", apiUUID='" + apiUUID + '\'' +
                 ", appId=" + appId +
-                ", appUUID='" + applicationUUID + '\'' +
+                ", applicationUUID='" + applicationUUID + '\'' +
                 ", subscriptionState='" + subscriptionState + '\'' +
                 ", timeStamp=" + timeStamp +
                 '}';
