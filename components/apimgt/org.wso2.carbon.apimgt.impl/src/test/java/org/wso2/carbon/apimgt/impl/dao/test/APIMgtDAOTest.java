@@ -36,7 +36,6 @@ import org.wso2.carbon.apimgt.api.dto.UserApplicationAPIUsage;
 import org.wso2.carbon.apimgt.api.model.*;
 import org.wso2.carbon.apimgt.api.model.graphql.queryanalysis.CustomComplexityDetails;
 import org.wso2.carbon.apimgt.api.model.graphql.queryanalysis.GraphqlComplexityInfo;
-import org.wso2.carbon.apimgt.api.model.policy.APIPolicy;
 import org.wso2.carbon.apimgt.api.model.policy.ApplicationPolicy;
 import org.wso2.carbon.apimgt.api.model.policy.BandwidthLimit;
 import org.wso2.carbon.apimgt.api.model.policy.Condition;
@@ -48,7 +47,6 @@ import org.wso2.carbon.apimgt.api.model.policy.HeaderCondition;
 import org.wso2.carbon.apimgt.api.model.policy.IPCondition;
 import org.wso2.carbon.apimgt.api.model.policy.JWTClaimsCondition;
 import org.wso2.carbon.apimgt.api.model.policy.Pipeline;
-import org.wso2.carbon.apimgt.api.model.policy.Policy;
 import org.wso2.carbon.apimgt.api.model.policy.PolicyConstants;
 import org.wso2.carbon.apimgt.api.model.policy.QueryParameterCondition;
 import org.wso2.carbon.apimgt.api.model.policy.QuotaPolicy;
@@ -464,7 +462,7 @@ public class APIMgtDAOTest {
     @Test
     public void testInsertAPIPolicy() throws APIManagementException {
         String policyName = "TestInsertAPIPolicy";
-        apiMgtDAO.addAPIPolicy((APIPolicy) getPolicyAPILevelPerUser(policyName));
+        apiMgtDAO.addAPIPolicy((org.wso2.carbon.apimgt.api.model.policy.APIPolicy) getPolicyAPILevelPerUser(policyName));
     }
     @Test
     public void testUpdateApplicationPolicy() throws APIManagementException {
@@ -491,7 +489,7 @@ public class APIMgtDAOTest {
     @Test
     public void testUpdateAPIPolicy() throws APIManagementException {
         String policyName = "TestUpdateApiPolicy";
-        APIPolicy policy = (APIPolicy) getPolicyAPILevelPerUser(policyName);
+        org.wso2.carbon.apimgt.api.model.policy.APIPolicy policy = (org.wso2.carbon.apimgt.api.model.policy.APIPolicy) getPolicyAPILevelPerUser(policyName);
         apiMgtDAO.addAPIPolicy(policy);
         policy = apiMgtDAO.getAPIPolicy(policyName,-1234);
         policy.setDescription("New Description");
@@ -545,7 +543,7 @@ public class APIMgtDAOTest {
 
         policy.setPipelines(pipelines);
         apiMgtDAO.updateAPIPolicy(policy);
-        APIPolicy apiPolicy = apiMgtDAO.getAPIPolicy(policyName,-1234);
+        org.wso2.carbon.apimgt.api.model.policy.APIPolicy apiPolicy = apiMgtDAO.getAPIPolicy(policyName,-1234);
         assertNotNull(apiPolicy);
         List<Pipeline> pipelineList = apiPolicy.getPipelines();
         assertNotNull(pipelineList);
@@ -589,11 +587,11 @@ public class APIMgtDAOTest {
     @Test
     public void testGetApiPolicy() throws APIManagementException {
         String policyName = "TestGetAPIPolicy";
-        apiMgtDAO.addAPIPolicy((APIPolicy) getPolicyAPILevelPerUser(policyName));
-        APIPolicy apiPolicy = apiMgtDAO.getAPIPolicy(policyName, -1234);
+        apiMgtDAO.addAPIPolicy((org.wso2.carbon.apimgt.api.model.policy.APIPolicy) getPolicyAPILevelPerUser(policyName));
+        org.wso2.carbon.apimgt.api.model.policy.APIPolicy apiPolicy = apiMgtDAO.getAPIPolicy(policyName, -1234);
         assertNotNull(apiPolicy);
         assertEquals(apiPolicy.getPolicyName(), policyName);
-        APIPolicy apiPolicyFromUUId = apiMgtDAO.getAPIPolicyByUUID(apiPolicy.getUUID());
+        org.wso2.carbon.apimgt.api.model.policy.APIPolicy apiPolicyFromUUId = apiMgtDAO.getAPIPolicyByUUID(apiPolicy.getUUID());
         assertNotNull(apiPolicyFromUUId);
         assertEquals(apiPolicyFromUUId.getPolicyName(), policyName);
         apiMgtDAO.setPolicyDeploymentStatus(PolicyConstants.POLICY_LEVEL_API, apiPolicy.getPolicyName(), -1234, true);
@@ -604,8 +602,8 @@ public class APIMgtDAOTest {
 
 
 
-    private Policy getPolicyAPILevelPerUser(String policyName) {
-        APIPolicy policy = new APIPolicy(policyName);
+    private org.wso2.carbon.apimgt.api.model.policy.Policy getPolicyAPILevelPerUser(String policyName) {
+        org.wso2.carbon.apimgt.api.model.policy.APIPolicy policy = new org.wso2.carbon.apimgt.api.model.policy.APIPolicy(policyName);
 
         policy.setUserLevel(PolicyConstants.PER_USER);
         policy.setDescription("Description");
@@ -723,7 +721,7 @@ public class APIMgtDAOTest {
         return policy;
     }
 
-    private Policy getApplicationPolicy(String policyName) {
+    private org.wso2.carbon.apimgt.api.model.policy.Policy getApplicationPolicy(String policyName) {
         ApplicationPolicy policy = new ApplicationPolicy(policyName);
         policy.setDescription(policyName);
         policy.setDescription("Application policy Description");
@@ -743,7 +741,7 @@ public class APIMgtDAOTest {
         return policy;
     }
 
-    private Policy getSubscriptionPolicy(String policyName) {
+    private org.wso2.carbon.apimgt.api.model.policy.Policy getSubscriptionPolicy(String policyName) {
         SubscriptionPolicy policy = new SubscriptionPolicy(policyName);
         policy.setDisplayName(policyName);
         policy.setDescription("Subscription policy Description");
@@ -837,7 +835,7 @@ public class APIMgtDAOTest {
         subscriber.setEmail("abc@wso2.com");
         subscriber.setSubscribedDate(new Date(System.currentTimeMillis()));
         apiMgtDAO.addSubscriber(subscriber, null);
-        Policy applicationPolicy = getApplicationPolicy("testCreateApplicationRegistrationEntry");
+        org.wso2.carbon.apimgt.api.model.policy.Policy applicationPolicy = getApplicationPolicy("testCreateApplicationRegistrationEntry");
         applicationPolicy.setTenantId(-1234);
         apiMgtDAO.addApplicationPolicy((ApplicationPolicy) applicationPolicy);
         Application application = new Application("testCreateApplicationRegistrationEntry", subscriber);
@@ -926,7 +924,7 @@ public class APIMgtDAOTest {
         subscriber.setEmail("abc@wso2.com");
         subscriber.setSubscribedDate(new Date(System.currentTimeMillis()));
         apiMgtDAO.addSubscriber(subscriber, null);
-        Policy applicationPolicy = getApplicationPolicy("testCreateApplicationRegistrationEntry");
+        org.wso2.carbon.apimgt.api.model.policy.Policy applicationPolicy = getApplicationPolicy("testCreateApplicationRegistrationEntry");
         SubscriptionPolicy subscriptionPolicy = (SubscriptionPolicy) getSubscriptionPolicy
                 ("testCreateApplicationRegistrationEntry");
         subscriptionPolicy.setMonetizationPlan(APIConstants.Monetization.FIXED_RATE);
@@ -945,7 +943,7 @@ public class APIMgtDAOTest {
         api.setContext("/testCreateApplicationRegistrationEntry");
         api.setContextTemplate("/testCreateApplicationRegistrationEntry/{version}");
         api.setVersionTimestamp(String.valueOf(System.currentTimeMillis()));
-        APIPolicy apiPolicy = (APIPolicy) getPolicyAPILevelPerUser("testCreateApplicationRegistrationEntry");
+        org.wso2.carbon.apimgt.api.model.policy.APIPolicy apiPolicy = (org.wso2.carbon.apimgt.api.model.policy.APIPolicy) getPolicyAPILevelPerUser("testCreateApplicationRegistrationEntry");
         api.setApiLevelPolicy(apiPolicy.getPolicyName());
         api.setUUID(UUID.randomUUID().toString());
         api.getId().setId(apiMgtDAO.addAPI(api, -1234, organization));
@@ -1102,7 +1100,7 @@ public class APIMgtDAOTest {
         subscriber.setEmail("abc@wso2.com");
         subscriber.setSubscribedDate(new Date(System.currentTimeMillis()));
         apiMgtDAO.addSubscriber(subscriber, null);
-        Policy applicationPolicy = getApplicationPolicy("testAddUpdateDeleteBlockCondition");
+        org.wso2.carbon.apimgt.api.model.policy.Policy applicationPolicy = getApplicationPolicy("testAddUpdateDeleteBlockCondition");
         applicationPolicy.setTenantId(-1234);
         apiMgtDAO.addApplicationPolicy((ApplicationPolicy) applicationPolicy);
         Application application = new Application("testAddUpdateDeleteBlockCondition", subscriber);
@@ -1457,17 +1455,17 @@ public class APIMgtDAOTest {
     public void testCommonOperationPolicyAddition() throws Exception {
         String org = "org1";
 
-        OperationPolicyData operationPolicyData = getOperationPolicyDataObject(org, null, "addHeader");
+        APIPolicyData operationPolicyData = getOperationPolicyDataObject(org, null, "addHeader");
 
         String policyID = apiMgtDAO.addCommonOperationPolicy(operationPolicyData);
         Assert.assertNotNull(policyID);
 
-        OperationPolicyData retrievedCommonPolicyData = apiMgtDAO.getCommonOperationPolicyByPolicyID(policyID, org, true);
+        APIPolicyData retrievedCommonPolicyData = apiMgtDAO.getCommonOperationPolicyByPolicyID(policyID, org, true);
         Assert.assertNotNull(retrievedCommonPolicyData);
         Assert.assertEquals(retrievedCommonPolicyData.getSpecification().getName(), operationPolicyData.getSpecification().getName());
 
         apiMgtDAO.deleteOperationPolicyByPolicyId(policyID);
-        OperationPolicyData policyDataAfterDelete = apiMgtDAO.getCommonOperationPolicyByPolicyID(policyID, org,
+        APIPolicyData policyDataAfterDelete = apiMgtDAO.getCommonOperationPolicyByPolicyID(policyID, org,
                 true);
         Assert.assertNull("Policy should delete", policyDataAfterDelete);
     }
@@ -1478,12 +1476,12 @@ public class APIMgtDAOTest {
         String org = "org1";
         String apiUUID = "12345";
 
-        OperationPolicyData operationPolicyData = getOperationPolicyDataObject(org, apiUUID, "addHeader");
+        APIPolicyData operationPolicyData = getOperationPolicyDataObject(org, apiUUID, "addHeader");
 
         String policyID = apiMgtDAO.addAPISpecificOperationPolicy(apiUUID, null, operationPolicyData);
         Assert.assertNotNull(policyID);
 
-        OperationPolicyData retrievedPolicyData = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(policyID,
+        APIPolicyData retrievedPolicyData = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(policyID,
                 apiUUID, org, true);
         Assert.assertNotNull(retrievedPolicyData);
         Assert.assertEquals(retrievedPolicyData.getSpecification().getName(), operationPolicyData.getSpecification().getName());
@@ -1491,7 +1489,7 @@ public class APIMgtDAOTest {
 
         apiMgtDAO.deleteOperationPolicyByPolicyId(policyID);
 
-        OperationPolicyData policyDataAfterDelete = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(policyID,
+        APIPolicyData policyDataAfterDelete = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(policyID,
                 apiUUID, org, true);
         Assert.assertNull("Policy should delete", policyDataAfterDelete);
     }
@@ -1501,10 +1499,10 @@ public class APIMgtDAOTest {
     public void testCommonPolicyCloneToAPI() throws Exception {
         String org = "org1";
 
-        OperationPolicyData commonPolicyData = getOperationPolicyDataObject(org, null, "addHeader");
+        APIPolicyData commonPolicyData = getOperationPolicyDataObject(org, null, "addHeader");
         String commonPolicyUUID = apiMgtDAO.addCommonOperationPolicy(commonPolicyData);
 
-        OperationPolicy policy = new OperationPolicy();
+        Policy policy = new Policy();
         policy.setPolicyName(commonPolicyData.getSpecification().getName());
         policy.setPolicyVersion(commonPolicyData.getSpecification().getVersion());
         policy.setPolicyId(commonPolicyUUID);
@@ -1516,7 +1514,7 @@ public class APIMgtDAOTest {
         parameters.put("headerValue", "Test Value");
         policy.setParameters(parameters);
 
-        List<OperationPolicy> policyList = new ArrayList<>();
+        List<Policy> policyList = new ArrayList<>();
         policyList.add(policy);
 
         APIIdentifier apiIdentifier = new APIIdentifier("testCommonPolicyCloneToAPI",
@@ -1540,8 +1538,8 @@ public class APIMgtDAOTest {
 
         Set<URITemplate> uriTemplates = apiMgtDAO.getURITemplatesWithOperationPolicies(api.getUuid());
         for (URITemplate template : uriTemplates) {
-            List<OperationPolicy> storedPolicyList = template.getOperationPolicies();
-            for (OperationPolicy storedPolicy : storedPolicyList) {
+            List<Policy> storedPolicyList = template.getOperationPolicies();
+            for (Policy storedPolicy : storedPolicyList) {
                 Assert.assertNotEquals("Policy UUID should changed with cloned policy ID",
                         commonPolicyUUID, storedPolicy.getPolicyId());
                 Assert.assertEquals("Policy name should be same",
@@ -1562,7 +1560,7 @@ public class APIMgtDAOTest {
 
         Assert.assertNotNull("Cloned policy UUID should not be null", clonedPolicyUUID);
 
-        OperationPolicyData clonedPolicyData = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(clonedPolicyUUID,
+        APIPolicyData clonedPolicyData = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(clonedPolicyUUID,
                 api.getUuid(), org, false);
 
         Assert.assertNotNull("Cloned policy should be available for API", clonedPolicyData);
@@ -1575,7 +1573,7 @@ public class APIMgtDAOTest {
         apiMgtDAO.deleteAPI(api.getUuid());
         apiMgtDAO.deleteOperationPolicyByPolicyId(commonPolicyUUID);
 
-        OperationPolicyData clonedPolicyDataAfterDelete = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(clonedPolicyUUID,
+        APIPolicyData clonedPolicyDataAfterDelete = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(clonedPolicyUUID,
                 api.getUuid(), org, false);
         Assert.assertNull("Cloned policy should delete with the API delete", clonedPolicyDataAfterDelete);
     }
@@ -1584,15 +1582,15 @@ public class APIMgtDAOTest {
     public void testClonePolicyDeleteIfNotUsed() throws Exception {
         String org = "org1";
 
-        OperationPolicyData headerCPolicyData = getOperationPolicyDataObject(org, null, "addHeader");
+        APIPolicyData headerCPolicyData = getOperationPolicyDataObject(org, null, "addHeader");
         String headerCPolicyUUID = apiMgtDAO.addCommonOperationPolicy(headerCPolicyData);
 
-        OperationPolicyData logCPolicyData = getOperationPolicyDataObject(org, null, "logPolicy");
+        APIPolicyData logCPolicyData = getOperationPolicyDataObject(org, null, "logPolicy");
         String logCPolicyUUID = apiMgtDAO.addCommonOperationPolicy(logCPolicyData);
 
-        List<OperationPolicy> policyList = new ArrayList<>();
+        List<Policy> policyList = new ArrayList<>();
 
-        OperationPolicy headerCPolicy = new OperationPolicy();
+        Policy headerCPolicy = new Policy();
         headerCPolicy.setPolicyName(headerCPolicyData.getSpecification().getName());
         headerCPolicy.setPolicyVersion(headerCPolicyData.getSpecification().getVersion());
         headerCPolicy.setPolicyId(headerCPolicyUUID);
@@ -1605,7 +1603,7 @@ public class APIMgtDAOTest {
 
         policyList.add(headerCPolicy);
 
-        OperationPolicy logCPolicy = new OperationPolicy();
+        Policy logCPolicy = new Policy();
         logCPolicy.setPolicyName(logCPolicyData.getSpecification().getName());
         logCPolicy.setPolicyVersion(logCPolicyData.getSpecification().getVersion());
         logCPolicy.setPolicyId(logCPolicyUUID);
@@ -1633,14 +1631,14 @@ public class APIMgtDAOTest {
 
         Set<URITemplate> uriTemplates = apiMgtDAO.getURITemplatesWithOperationPolicies(api.getUuid());
         for (URITemplate template : uriTemplates) {
-            List<OperationPolicy> storedPolicyList = template.getOperationPolicies();
-            for (OperationPolicy storedPolicy : storedPolicyList) {
+            List<Policy> storedPolicyList = template.getOperationPolicies();
+            for (Policy storedPolicy : storedPolicyList) {
                 clonedAddHeaderPolicyUUID = storedPolicy.getPolicyId();
                 break;
             }
         }
 
-        List<OperationPolicy> newPolicyList = new ArrayList<>();
+        List<Policy> newPolicyList = new ArrayList<>();
         newPolicyList.add(logCPolicy);
         api.setUriTemplates(getUriTemplateSetWithPolicies(newPolicyList));
         apiMgtDAO.updateAPI(api);
@@ -1649,14 +1647,14 @@ public class APIMgtDAOTest {
         Set<URITemplate> updatedUriTemplates = apiMgtDAO.getURITemplatesWithOperationPolicies(api.getUuid());
         String clonedLogPolicyUUID = null;
         for (URITemplate template : updatedUriTemplates) {
-            List<OperationPolicy> storedPolicyList = template.getOperationPolicies();
-            for (OperationPolicy storedPolicy : storedPolicyList) {
+            List<Policy> storedPolicyList = template.getOperationPolicies();
+            for (Policy storedPolicy : storedPolicyList) {
                 clonedLogPolicyUUID = storedPolicy.getPolicyId();
                 break;
             }
         }
 
-        OperationPolicyData clonedAddHeaderPolicyData =
+        APIPolicyData clonedAddHeaderPolicyData =
                 apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(clonedAddHeaderPolicyUUID, api.getUuid(), org, false);
 
         Assert.assertNull("Cloned Add header needs to be cleared as it is no longer used", clonedAddHeaderPolicyData);
@@ -1689,10 +1687,10 @@ public class APIMgtDAOTest {
         apiMgtDAO.updateAPI(api);
         apiMgtDAO.updateURITemplates(api, -1234);
 
-        OperationPolicyData apiSpecificPolicyData = getOperationPolicyDataObject(org, null, "addHeader");
+        APIPolicyData apiSpecificPolicyData = getOperationPolicyDataObject(org, null, "addHeader");
         String policyUUID = apiMgtDAO.addAPISpecificOperationPolicy(api.getUuid(), null, apiSpecificPolicyData);
 
-        OperationPolicy policy = new OperationPolicy();
+        Policy policy = new Policy();
         policy.setPolicyName(apiSpecificPolicyData.getSpecification().getName());
         policy.setPolicyVersion(apiSpecificPolicyData.getSpecification().getVersion());
         policy.setPolicyId(policyUUID);
@@ -1704,7 +1702,7 @@ public class APIMgtDAOTest {
         parameters.put("headerValue", "Test Value");
         policy.setParameters(parameters);
 
-        List<OperationPolicy> policyList = new ArrayList<>();
+        List<Policy> policyList = new ArrayList<>();
         policyList.add(policy);
 
         api.setUriTemplates(getUriTemplateSetWithPolicies(policyList));
@@ -1713,8 +1711,8 @@ public class APIMgtDAOTest {
 
         Set<URITemplate> uriTemplates = apiMgtDAO.getURITemplatesWithOperationPolicies(api.getUuid());
         for (URITemplate template : uriTemplates) {
-            List<OperationPolicy> storedPolicyList = template.getOperationPolicies();
-            for (OperationPolicy storedPolicy : storedPolicyList) {
+            List<Policy> storedPolicyList = template.getOperationPolicies();
+            for (Policy storedPolicy : storedPolicyList) {
                 Assert.assertEquals("Policy UUID should not change", policyUUID, storedPolicy.getPolicyId());
                 Assert.assertEquals("Policy name should be same",
                         apiSpecificPolicyData.getSpecification().getName(), storedPolicy.getPolicyName());
@@ -1725,7 +1723,7 @@ public class APIMgtDAOTest {
             }
         }
 
-        OperationPolicyData clonedPolicyData = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(policyUUID,
+        APIPolicyData clonedPolicyData = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(policyUUID,
                 api.getUuid(), org, false);
 
         Assert.assertNotNull("Policy should be available for API", clonedPolicyData);
@@ -1734,25 +1732,25 @@ public class APIMgtDAOTest {
 
         apiMgtDAO.deleteAPI(api.getUuid());
 
-        OperationPolicyData policyDataAfterDelete = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(policyUUID,
+        APIPolicyData policyDataAfterDelete = apiMgtDAO.getAPISpecificOperationPolicyByPolicyID(policyUUID,
                 api.getUuid(), org, false);
         Assert.assertNull("API specific policy should delete with the API delete", policyDataAfterDelete);
     }
 
-    private OperationPolicyData getOperationPolicyDataObject(String org, String apiUUID, String policyName) throws APIManagementException {
+    private APIPolicyData getOperationPolicyDataObject(String org, String apiUUID, String policyName) throws APIManagementException {
         String jsonSpec = getPolicyJson(policyName);
         String jsonDef = getPolicyDef(policyName);
 
-        OperationPolicySpecification policySpec = APIUtil.getValidatedOperationPolicySpecification(jsonSpec);
+        APIPolicySpecification policySpec = APIUtil.getValidatedOperationPolicySpecification(jsonSpec);
 
-        OperationPolicyDefinition synapseDefinition = new OperationPolicyDefinition();
+        APIPolicyTemplate synapseDefinition = new APIPolicyTemplate();
         synapseDefinition.setContent(jsonDef);
-        synapseDefinition.setGatewayType(OperationPolicyDefinition.GatewayType.Synapse);
+        synapseDefinition.setGatewayType(APIPolicyTemplate.GatewayType.Synapse);
         synapseDefinition.setMd5Hash(APIUtil.getMd5OfOperationPolicyDefinition(synapseDefinition));
 
-        OperationPolicyData operationPolicyData = new OperationPolicyData();
+        APIPolicyData operationPolicyData = new APIPolicyData();
         operationPolicyData.setSpecification(policySpec);
-        operationPolicyData.setSynapsePolicyDefinition(synapseDefinition);
+        operationPolicyData.setSynapsePolicyTemplate(synapseDefinition);
 
         operationPolicyData.setOrganization(org);
         operationPolicyData.setApiUUID(apiUUID);
@@ -1761,7 +1759,7 @@ public class APIMgtDAOTest {
         return operationPolicyData;
     }
 
-    private Set<URITemplate> getUriTemplateSetWithPolicies(List<OperationPolicy> policy) {
+    private Set<URITemplate> getUriTemplateSetWithPolicies(List<Policy> policy) {
         Set<URITemplate> uriTemplates = new HashSet<URITemplate>();
         uriTemplates.add(getUriTemplateWithPolicies("/abc", "GET", "Any",
                 "Unlimited", policy));
@@ -1771,7 +1769,7 @@ public class APIMgtDAOTest {
     }
 
     private URITemplate getUriTemplateWithPolicies(String resourceString, String httpVerb,
-                                                   String authType, String throtlingTier, List<OperationPolicy> policyList) {
+                                                   String authType, String throtlingTier, List<Policy> policyList) {
         URITemplate uriTemplate = new URITemplate();
         uriTemplate.setUriTemplate(resourceString);
         uriTemplate.setHTTPVerb(httpVerb);

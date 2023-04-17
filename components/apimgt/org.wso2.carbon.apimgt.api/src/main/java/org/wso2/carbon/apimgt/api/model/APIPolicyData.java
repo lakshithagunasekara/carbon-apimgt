@@ -20,7 +20,7 @@ package org.wso2.carbon.apimgt.api.model;
 
 import java.util.Objects;
 
-public class OperationPolicyData {
+public class APIPolicyData {
 
     private String policyId = null;
     private String organization = null;
@@ -28,9 +28,9 @@ public class OperationPolicyData {
     private String apiUUID = null; // Null for common policies
     private String revisionUUID = null; // Null for common policies and API specific policies that are not revisioned yet
     private String clonedCommonPolicyId = null; // Null for common policies and API specific policies that are not cloned.
-    private OperationPolicySpecification specification;
-    private OperationPolicyDefinition synapsePolicyDefinition;
-    private OperationPolicyDefinition ccPolicyDefinition;
+    private APIPolicySpecification specification;
+    private APIPolicyTemplate synapsePolicyTemplate;
+    private APIPolicyTemplate ccPolicyDefinition;
 
     public String getPolicyId() {
 
@@ -42,12 +42,12 @@ public class OperationPolicyData {
         this.policyId = policyId;
     }
 
-    public OperationPolicySpecification getSpecification() {
+    public APIPolicySpecification getSpecification() {
 
         return specification;
     }
 
-    public void setSpecification(OperationPolicySpecification specification) {
+    public void setSpecification(APIPolicySpecification specification) {
 
         this.specification = specification;
     }
@@ -117,22 +117,22 @@ public class OperationPolicyData {
         return revisionUUID != null;
     }
 
-    public OperationPolicyDefinition getSynapsePolicyDefinition() {
+    public APIPolicyTemplate getSynapsePolicyTemplate() {
 
-        return synapsePolicyDefinition;
+        return synapsePolicyTemplate;
     }
 
-    public void setSynapsePolicyDefinition(OperationPolicyDefinition synapsePolicyDefinition) {
+    public void setSynapsePolicyTemplate(APIPolicyTemplate synapsePolicyTemplate) {
 
-        this.synapsePolicyDefinition = synapsePolicyDefinition;
+        this.synapsePolicyTemplate = synapsePolicyTemplate;
     }
 
-    public OperationPolicyDefinition getCcPolicyDefinition() {
+    public APIPolicyTemplate getCcPolicyDefinition() {
 
         return ccPolicyDefinition;
     }
 
-    public void setCcPolicyDefinition(OperationPolicyDefinition ccPolicyDefinition) {
+    public void setCcPolicyDefinition(APIPolicyTemplate ccPolicyDefinition) {
 
         this.ccPolicyDefinition = ccPolicyDefinition;
     }
@@ -144,9 +144,9 @@ public class OperationPolicyData {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        OperationPolicyData policyObj = (OperationPolicyData) o;
+        APIPolicyData policyObj = (APIPolicyData) o;
         return policyId.equals(policyObj.policyId) && Objects.equals(specification, policyObj.specification)
-                && Objects.equals(synapsePolicyDefinition, policyObj.synapsePolicyDefinition) && Objects.equals(
+                && Objects.equals(synapsePolicyTemplate, policyObj.synapsePolicyTemplate) && Objects.equals(
                 ccPolicyDefinition, policyObj.ccPolicyDefinition) && md5Hash.equals(policyObj.md5Hash)
                 && organization.equals(policyObj.organization);
     }
@@ -154,6 +154,6 @@ public class OperationPolicyData {
     @Override
     public int hashCode() {
 
-        return Objects.hash(policyId, specification, synapsePolicyDefinition, md5Hash, organization);
+        return Objects.hash(policyId, specification, synapsePolicyTemplate, md5Hash, organization);
     }
 }

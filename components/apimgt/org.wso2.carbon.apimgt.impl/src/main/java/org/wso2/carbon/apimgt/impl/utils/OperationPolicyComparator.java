@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.apimgt.impl.utils;
 
-import org.wso2.carbon.apimgt.api.model.OperationPolicy;
+import org.wso2.carbon.apimgt.api.model.Policy;
 
 import java.util.Comparator;
 
@@ -29,9 +29,9 @@ import java.util.Comparator;
 /**
  * TODO add logic to put weight on each parameter. compare by provider and then by name and finally by version
  */
-public class OperationPolicyComparator implements Comparator<OperationPolicy> {
+public class OperationPolicyComparator implements Comparator<Policy> {
 
-    public int compare(OperationPolicy op1, OperationPolicy op2) {
+    public int compare(Policy op1, Policy op2) {
 
         return op1.compareTo(op2);
     }

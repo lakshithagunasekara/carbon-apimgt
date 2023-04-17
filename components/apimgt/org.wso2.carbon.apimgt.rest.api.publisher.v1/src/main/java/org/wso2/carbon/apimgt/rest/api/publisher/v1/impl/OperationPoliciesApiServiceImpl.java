@@ -27,9 +27,9 @@ import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.APIMgtResourceNotFoundException;
 import org.wso2.carbon.apimgt.api.APIProvider;
 import org.wso2.carbon.apimgt.api.ExceptionCodes;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyData;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyDefinition;
-import org.wso2.carbon.apimgt.api.model.OperationPolicySpecification;
+import org.wso2.carbon.apimgt.api.model.APIPolicyData;
+import org.wso2.carbon.apimgt.api.model.APIPolicyTemplate;
+import org.wso2.carbon.apimgt.api.model.APIPolicySpecification;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.importexport.ExportFormat;
 import org.wso2.carbon.apimgt.impl.importexport.ImportExportConstants;
@@ -52,7 +52,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -83,9 +82,9 @@ public class OperationPoliciesApiServiceImpl implements OperationPoliciesApiServ
                                              MessageContext messageContext) throws APIManagementException {
 
         try {
-            OperationPolicyDefinition ccPolicyDefinition = null;
-            OperationPolicyDefinition synapseDefinition = null;
-            OperationPolicySpecification policySpecification;
+            APIPolicyTemplate ccPolicyDefinition = null;
+            APIPolicyTemplate synapseDefinition = null;
+            APIPolicySpecification policySpecification;
             APIProvider apiProvider = RestApiCommonUtil.getLoggedInUserProvider();
             String organization = RestApiUtil.getValidatedOrganization(messageContext);
 
@@ -103,28 +102,28 @@ public class OperationPoliciesApiServiceImpl implements OperationPoliciesApiServ
                 }
                 policySpecification = APIUtil.getValidatedOperationPolicySpecification(jsonContent);
 
-                OperationPolicyData operationPolicyData = OperationPoliciesApiServiceImplUtils
+                APIPolicyData operationPolicyData = OperationPoliciesApiServiceImplUtils
                         .prepareOperationPolicyData(policySpecification, organization);
 
                 if (synapsePolicyDefinitionFileInputStream != null) {
                     String synapsePolicyDefinition =
                             RestApiPublisherUtils.readInputStream(synapsePolicyDefinitionFileInputStream,
                                     synapsePolicyDefinitionFileDetail);
-                    synapseDefinition = new OperationPolicyDefinition();
+                    synapseDefinition = new APIPolicyTemplate();
                     OperationPoliciesApiServiceImplUtils
                             .preparePolicyDefinition(operationPolicyData, synapseDefinition,
-                                    synapsePolicyDefinition, OperationPolicyDefinition.GatewayType.Synapse);
+                                    synapsePolicyDefinition, APIPolicyTemplate.GatewayType.Synapse);
                 }
 
                 if (ccPolicyDefinitionFileInputStream != null) {
                     String choreoConnectPolicyDefinition = RestApiPublisherUtils
                             .readInputStream(ccPolicyDefinitionFileInputStream, ccPolicyDefinitionFileDetail);
-                    ccPolicyDefinition = new OperationPolicyDefinition();
+                    ccPolicyDefinition = new APIPolicyTemplate();
                     OperationPoliciesApiServiceImplUtils
                             .preparePolicyDefinition(operationPolicyData, ccPolicyDefinition,
-                                    choreoConnectPolicyDefinition, OperationPolicyDefinition.GatewayType.ChoreoConnect);
+                                    choreoConnectPolicyDefinition, APIPolicyTemplate.GatewayType.ChoreoConnect);
                 }
-                OperationPolicyData existingPolicy =
+                APIPolicyData existingPolicy =
                         apiProvider.getCommonOperationPolicyByPolicyName(policySpecification.getName(),
                                 policySpecification.getVersion(), organization, false);
                 String policyID;
@@ -168,7 +167,7 @@ public class OperationPoliciesApiServiceImpl implements OperationPoliciesApiServ
             APIProvider apiProvider = RestApiCommonUtil.getLoggedInUserProvider();
             String organization = RestApiUtil.getValidatedOrganization(messageContext);
 
-            OperationPolicyData existingPolicy =
+            APIPolicyData existingPolicy =
                     apiProvider.getCommonOperationPolicyByPolicyId(operationPolicyId, organization, false);
             if (existingPolicy != null) {
                 apiProvider.deleteOperationPolicyById(operationPolicyId, organization);
@@ -224,12 +223,12 @@ public class OperationPoliciesApiServiceImpl implements OperationPoliciesApiServ
                 version = queryParamMap.get(ImportExportConstants.VERSION_ELEMENT);
 
                 apiManagementExceptionErrorMessage = "Error while retrieving the policy by name & version.";
-                OperationPolicyData policyData = apiProvider.getCommonOperationPolicyByPolicyName(name, version,
+                APIPolicyData policyData = apiProvider.getCommonOperationPolicyByPolicyName(name, version,
                         organization, false);
 
                 // if not found, throw not found error
                 if (policyData != null) {
-                    List<OperationPolicyData> commonOperationPolicyLIst = new ArrayList<>();
+                    List<APIPolicyData> commonOperationPolicyLIst = new ArrayList<>();
                     commonOperationPolicyLIst.add(policyData);
                     policyListDTO = OperationPolicyMappingUtil.fromOperationPolicyDataListToDTO(
                             commonOperationPolicyLIst, 0, 1);
@@ -246,7 +245,7 @@ public class OperationPoliciesApiServiceImpl implements OperationPoliciesApiServ
                 apiManagementExceptionErrorMessage = "Error while retrieving the list of all common operation policies.";
 
                 // Since policy definition is bit bulky, we don't query the definition unnecessarily.
-                List<OperationPolicyData> commonOperationPolicyLIst = apiProvider.getAllCommonOperationPolicies(
+                List<APIPolicyData> commonOperationPolicyLIst = apiProvider.getAllCommonOperationPolicies(
                         organization);
 
                 // Set limit to the query param value or the count of all policies
@@ -283,7 +282,7 @@ public class OperationPoliciesApiServiceImpl implements OperationPoliciesApiServ
             APIProvider apiProvider = RestApiCommonUtil.getLoggedInUserProvider();
             String organization = RestApiUtil.getValidatedOrganization(messageContext);
 
-            OperationPolicyData existingPolicy =
+            APIPolicyData existingPolicy =
                     apiProvider.getCommonOperationPolicyByPolicyId(operationPolicyId, organization, false);
             if (existingPolicy != null) {
                 OperationPolicyDataDTO policyDataDTO =
@@ -325,7 +324,7 @@ public class OperationPoliciesApiServiceImpl implements OperationPoliciesApiServ
             APIProvider apiProvider = RestApiCommonUtil.getLoggedInUserProvider();
             String organization = RestApiUtil.getValidatedOrganization(messageContext);
 
-            OperationPolicyData policyData =
+            APIPolicyData policyData =
                     apiProvider.getCommonOperationPolicyByPolicyId(operationPolicyId, organization, true);
             if (policyData != null) {
                 File file = RestApiPublisherUtils.exportOperationPolicyData(policyData, ExportFormat.YAML.name());
@@ -370,7 +369,7 @@ public class OperationPoliciesApiServiceImpl implements OperationPoliciesApiServ
         APIProvider apiProvider = RestApiCommonUtil.getLoggedInUserProvider();
         String organization = RestApiUtil.getValidatedOrganization(messageContext);
 
-        OperationPolicyData policyData = apiProvider.getCommonOperationPolicyByPolicyName(name, version, organization,
+        APIPolicyData policyData = apiProvider.getCommonOperationPolicyByPolicyName(name, version, organization,
                 true);
         if (policyData != null) {
             ExportFormat exportFormat = StringUtils.isNotEmpty(format) ?

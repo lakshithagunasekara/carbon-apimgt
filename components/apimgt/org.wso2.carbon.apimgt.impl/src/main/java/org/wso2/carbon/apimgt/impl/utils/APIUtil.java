@@ -92,34 +92,9 @@ import org.wso2.carbon.apimgt.api.doc.model.APIResource;
 import org.wso2.carbon.apimgt.api.doc.model.Operation;
 import org.wso2.carbon.apimgt.api.doc.model.Parameter;
 import org.wso2.carbon.apimgt.api.dto.KeyManagerConfigurationDTO;
-import org.wso2.carbon.apimgt.api.model.API;
-import org.wso2.carbon.apimgt.api.model.APICategory;
-import org.wso2.carbon.apimgt.api.model.APIIdentifier;
-import org.wso2.carbon.apimgt.api.model.APIProduct;
-import org.wso2.carbon.apimgt.api.model.APIProductIdentifier;
-import org.wso2.carbon.apimgt.api.model.APIPublisher;
-import org.wso2.carbon.apimgt.api.model.APIRevision;
-import org.wso2.carbon.apimgt.api.model.APIStatus;
-import org.wso2.carbon.apimgt.api.model.APIStore;
-import org.wso2.carbon.apimgt.api.model.Application;
-import org.wso2.carbon.apimgt.api.model.CORSConfiguration;
-import org.wso2.carbon.apimgt.api.model.Documentation;
-import org.wso2.carbon.apimgt.api.model.DocumentationType;
-import org.wso2.carbon.apimgt.api.model.EndpointSecurity;
-import org.wso2.carbon.apimgt.api.model.Environment;
-import org.wso2.carbon.apimgt.api.model.Identifier;
-import org.wso2.carbon.apimgt.api.model.KeyManagerConfiguration;
-import org.wso2.carbon.apimgt.api.model.KeyManagerConnectorConfiguration;
-import org.wso2.carbon.apimgt.api.model.Mediation;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyData;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyDefinition;
-import org.wso2.carbon.apimgt.api.model.OperationPolicySpecification;
+import org.wso2.carbon.apimgt.api.model.*;
+import org.wso2.carbon.apimgt.api.model.APIPolicyData;
 import org.wso2.carbon.apimgt.api.model.Provider;
-import org.wso2.carbon.apimgt.api.model.Scope;
-import org.wso2.carbon.apimgt.api.model.Tier;
-import org.wso2.carbon.apimgt.api.model.URITemplate;
-import org.wso2.carbon.apimgt.api.model.VHost;
-import org.wso2.carbon.apimgt.api.model.WebsubSubscriptionConfiguration;
 import org.wso2.carbon.apimgt.api.model.graphql.queryanalysis.GraphqlComplexityInfo;
 import org.wso2.carbon.apimgt.api.model.policy.APIPolicy;
 import org.wso2.carbon.apimgt.api.model.policy.ApplicationPolicy;
@@ -9608,25 +9583,25 @@ public final class APIUtil {
                     if (!existingPolicies.contains(fileName.substring(0, fileName.lastIndexOf('.')))) {
                         try {
                             jsonContent = FileUtils.readFileToString(file);
-                            OperationPolicySpecification policySpec = getValidatedOperationPolicySpecification(jsonContent);
+                            APIPolicySpecification policySpec = getValidatedOperationPolicySpecification(jsonContent);
                             if (policySpec != null) {
-                                OperationPolicyData policyData = new OperationPolicyData();
+                                APIPolicyData policyData = new APIPolicyData();
                                 policyData.setSpecification(policySpec);
                                 policyData.setOrganization(organization);
                                 String policyFileName = getOperationPolicyFileName(policySpec.getName(),
                                         policySpec.getVersion());
-                                OperationPolicyDefinition synapsePolicyDefinition =
+                                APIPolicyTemplate synapsePolicyDefinition =
                                         getOperationPolicyDefinitionFromFile(policyDefinitionLocation,
                                                 policyFileName, APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION);
                                 if (synapsePolicyDefinition != null) {
-                                    synapsePolicyDefinition.setGatewayType(OperationPolicyDefinition.GatewayType.Synapse);
-                                    policyData.setSynapsePolicyDefinition(synapsePolicyDefinition);
+                                    synapsePolicyDefinition.setGatewayType(APIPolicyTemplate.GatewayType.Synapse);
+                                    policyData.setSynapsePolicyTemplate(synapsePolicyDefinition);
                                 }
-                                OperationPolicyDefinition ccPolicyDefinition =
+                                APIPolicyTemplate ccPolicyDefinition =
                                         getOperationPolicyDefinitionFromFile(policyDefinitionLocation,
                                                 policyFileName, APIConstants.CC_POLICY_DEFINITION_EXTENSION);
                                 if (ccPolicyDefinition != null) {
-                                    ccPolicyDefinition.setGatewayType(OperationPolicyDefinition.GatewayType.ChoreoConnect);
+                                    ccPolicyDefinition.setGatewayType(APIPolicyTemplate.GatewayType.ChoreoConnect);
                                     policyData.setCcPolicyDefinition(ccPolicyDefinition);
                                 }
 
@@ -9657,12 +9632,12 @@ public final class APIUtil {
      *
      * @return OperationPolicyDefinition
      */
-    public static OperationPolicyDefinition getOperationPolicyDefinitionFromFile(String extractedFolderPath,
-                                                                                 String definitionFileName,
-                                                                                 String fileExtension)
+    public static APIPolicyTemplate getOperationPolicyDefinitionFromFile(String extractedFolderPath,
+                                                                         String definitionFileName,
+                                                                         String fileExtension)
             throws APIManagementException {
 
-        OperationPolicyDefinition policyDefinition = null;
+        APIPolicyTemplate policyDefinition = null;
         try {
             String fileName = extractedFolderPath + File.separator + definitionFileName + fileExtension;
             if (checkFileExistence(fileName)) {
@@ -9670,11 +9645,11 @@ public final class APIUtil {
                     log.debug("Found policy definition file " + fileName);
                 }
                 String yamlContent = FileUtils.readFileToString(new File(fileName));
-                policyDefinition = new OperationPolicyDefinition();
+                policyDefinition = new APIPolicyTemplate();
                 policyDefinition.setContent(yamlContent);
                 policyDefinition.setMd5Hash(getMd5OfOperationPolicyDefinition(policyDefinition));
                 if (StringUtils.equals(APIConstants.CC_POLICY_DEFINITION_EXTENSION, fileExtension)) {
-                    policyDefinition.setGatewayType(OperationPolicyDefinition.GatewayType.ChoreoConnect);
+                    policyDefinition.setGatewayType(APIPolicyTemplate.GatewayType.ChoreoConnect);
                 }
             }
         } catch (IOException e) {
@@ -9704,7 +9679,7 @@ public final class APIUtil {
      * @return OperationPolicySpecification object
      * @throws APIManagementException If the policy schema validation fails
      */
-    public static OperationPolicySpecification getValidatedOperationPolicySpecification(String policySpecAsString)
+    public static APIPolicySpecification getValidatedOperationPolicySpecification(String policySpecAsString)
             throws APIManagementException {
 
         Schema schema = APIUtil.retrieveOperationPolicySpecificationJsonSchema();
@@ -9719,7 +9694,7 @@ public final class APIUtil {
                         ExceptionCodes.from(ExceptionCodes.INVALID_OPERATION_POLICY_SPECIFICATION,
                                 errorMessage));
             }
-            return new Gson().fromJson(policySpecAsString, OperationPolicySpecification.class);
+            return new Gson().fromJson(policySpecAsString, APIPolicySpecification.class);
         }
         return null;
     }
@@ -9731,7 +9706,7 @@ public final class APIUtil {
      * @return policy attributes string
      * @throws APIManagementException If the policy schema validation fails
      */
-    public static String getPolicyAttributesAsString(OperationPolicySpecification policySpecification) {
+    public static String getPolicyAttributesAsString(APIPolicySpecification policySpecification) {
 
         String policyParamsString = "";
         if (policySpecification != null) {
@@ -9750,7 +9725,7 @@ public final class APIUtil {
      * @param policyData  Operation policy data
      * @return md5 hash
      */
-    public static String getMd5OfOperationPolicy(OperationPolicyData policyData) {
+    public static String getMd5OfOperationPolicy(APIPolicyData policyData) {
 
         String policySpecificationAsString = "";
         String synapsePolicyDefinitionAsString = "";
@@ -9759,8 +9734,8 @@ public final class APIUtil {
         if (policyData.getSpecification() != null) {
             policySpecificationAsString = new Gson().toJson(policyData.getSpecification());
         }
-        if (policyData.getSynapsePolicyDefinition() != null) {
-            synapsePolicyDefinitionAsString = new Gson().toJson(policyData.getSynapsePolicyDefinition());
+        if (policyData.getSynapsePolicyTemplate() != null) {
+            synapsePolicyDefinitionAsString = new Gson().toJson(policyData.getSynapsePolicyTemplate());
         }
         if (policyData.getCcPolicyDefinition() != null) {
             ccPolicyDefinitionAsString = new Gson().toJson(policyData.getCcPolicyDefinition());
@@ -9776,7 +9751,7 @@ public final class APIUtil {
      * @param policyDefinition  Operation policy definition
      * @return md5 hash of the definition content
      */
-    public static String getMd5OfOperationPolicyDefinition(OperationPolicyDefinition policyDefinition) {
+    public static String getMd5OfOperationPolicyDefinition(APIPolicyTemplate policyDefinition) {
 
         String md5Hash = "";
 
@@ -9796,10 +9771,10 @@ public final class APIUtil {
      * @param organization    organization
      * @throws APIManagementException
      */
-    public static OperationPolicyData getPolicyDataForMediationFlow(API api, String policyDirection,
-                                                                    String organization) {
+    public static APIPolicyData getPolicyDataForMediationFlow(API api, String policyDirection,
+                                                              String organization) {
 
-        OperationPolicyData policyData = null;
+        APIPolicyData policyData = null;
         switch (policyDirection) {
             case APIConstants.OPERATION_SEQUENCE_TYPE_REQUEST:
                 if (isSequenceDefined(api.getInSequence()) && api.getInSequenceMediation() != null) {
@@ -9826,12 +9801,12 @@ public final class APIUtil {
         return policyData;
     }
 
-    public static OperationPolicyData generateOperationPolicyDataObject(String apiUuid, String organization,
-                                                                        String policyName,
-                                                                        String policyDefinitionString) {
+    public static APIPolicyData generateOperationPolicyDataObject(String apiUuid, String organization,
+                                                                  String policyName,
+                                                                  String policyDefinitionString) {
 
-        OperationPolicySpecification policySpecification = new OperationPolicySpecification();
-        policySpecification.setCategory(OperationPolicySpecification.PolicyCategory.Mediation);
+        APIPolicySpecification policySpecification = new APIPolicySpecification();
+        policySpecification.setCategory(APIPolicySpecification.PolicyCategory.Mediation);
         policySpecification.setName(policyName);
         policySpecification.setDisplayName(policyName);
         policySpecification.setDescription("This is a mediation policy migrated to an operation policy.");
@@ -9853,17 +9828,17 @@ public final class APIUtil {
         applicableFlows.add(APIConstants.OPERATION_SEQUENCE_TYPE_FAULT);
         policySpecification.setApplicableFlows(applicableFlows);
 
-        OperationPolicyData policyData = new OperationPolicyData();
+        APIPolicyData policyData = new APIPolicyData();
         policyData.setOrganization(organization);
         policyData.setSpecification(policySpecification);
         policyData.setApiUUID(apiUuid);
 
         if (policyDefinitionString != null) {
-            OperationPolicyDefinition policyDefinition = new OperationPolicyDefinition();
+            APIPolicyTemplate policyDefinition = new APIPolicyTemplate();
             policyDefinition.setContent(policyDefinitionString);
-            policyDefinition.setGatewayType(OperationPolicyDefinition.GatewayType.Synapse);
+            policyDefinition.setGatewayType(APIPolicyTemplate.GatewayType.Synapse);
             policyDefinition.setMd5Hash(APIUtil.getMd5OfOperationPolicyDefinition(policyDefinition));
-            policyData.setSynapsePolicyDefinition(policyDefinition);
+            policyData.setSynapsePolicyTemplate(policyDefinition);
         }
 
         policyData.setMd5Hash(APIUtil.getMd5OfOperationPolicy(policyData));

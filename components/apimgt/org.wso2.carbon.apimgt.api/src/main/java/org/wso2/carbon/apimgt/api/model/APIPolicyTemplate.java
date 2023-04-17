@@ -21,7 +21,7 @@ package org.wso2.carbon.apimgt.api.model;
 
 import java.util.Objects;
 
-public class OperationPolicyDefinition {
+public class APIPolicyTemplate {
 
     public enum GatewayType {
         Synapse,
@@ -67,9 +67,9 @@ public class OperationPolicyDefinition {
 
         if (this == o)
             return true;
-        if (!(o instanceof OperationPolicyDefinition))
+        if (!(o instanceof APIPolicyTemplate))
             return false;
-        OperationPolicyDefinition that = (OperationPolicyDefinition) o;
+        APIPolicyTemplate that = (APIPolicyTemplate) o;
         return gatewayType == that.gatewayType && content.equals(that.content);
     }
 

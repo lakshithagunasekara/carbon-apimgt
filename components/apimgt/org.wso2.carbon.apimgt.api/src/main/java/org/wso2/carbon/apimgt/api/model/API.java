@@ -26,7 +26,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.wso2.carbon.apimgt.api.APIConstants;
-import org.wso2.carbon.apimgt.api.model.policy.Policy;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -73,7 +72,7 @@ public class API implements Serializable {
     private Date lastUpdated;
     private String updatedBy;
     private Set<Tier> availableTiers = new LinkedHashSet<Tier>();
-    private Set<Policy> availableSubscriptionLevelPolicies = new LinkedHashSet<Policy>();
+    private Set<org.wso2.carbon.apimgt.api.model.policy.Policy> availableSubscriptionLevelPolicies = new LinkedHashSet<org.wso2.carbon.apimgt.api.model.policy.Policy>();
     private String apiLevelPolicy;
     private AuthorizationPolicy authorizationPolicy;
     private Set<URITemplate> uriTemplates = new LinkedHashSet<URITemplate>();
@@ -1436,5 +1435,15 @@ public class API implements Serializable {
 
     public void setAsyncTransportProtocols(String asyncTransportProtocols) {
         this.asyncTransportProtocols = asyncTransportProtocols;
+    }
+
+    public List<Policy> apiPolicies;
+
+    public List<Policy> getApiPolicies() {
+        return apiPolicies;
+    }
+
+    public void setApiPolicies(List<Policy> apiPolicies) {
+        this.apiPolicies = apiPolicies;
     }
 }

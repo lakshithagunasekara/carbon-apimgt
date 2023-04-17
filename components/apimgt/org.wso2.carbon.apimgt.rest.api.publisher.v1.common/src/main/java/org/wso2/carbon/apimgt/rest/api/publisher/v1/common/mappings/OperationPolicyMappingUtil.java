@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings;
 
-import org.wso2.carbon.apimgt.api.model.OperationPolicy;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyData;
-import org.wso2.carbon.apimgt.api.model.OperationPolicySpecAttribute;
-import org.wso2.carbon.apimgt.api.model.OperationPolicySpecification;
+import org.wso2.carbon.apimgt.api.model.APIPolicyData;
+import org.wso2.carbon.apimgt.api.model.APIPolicySpecAttribute;
+import org.wso2.carbon.apimgt.api.model.APIPolicySpecification;
+import org.wso2.carbon.apimgt.api.model.Policy;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.utils.OperationPolicyComparator;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.APIOperationPoliciesDTO;
@@ -41,20 +41,20 @@ import java.util.List;
  */
 public class OperationPolicyMappingUtil {
 
-    public static List<OperationPolicy> fromDTOListToOperationPolicyList(
+    public static List<Policy> fromDTOListToOperationPolicyList(
             List<OperationPolicyDTO> operationPolicyDTOList) {
 
-        List<OperationPolicy> operationPolicyList = new ArrayList<>();
+        List<Policy> operationPolicyList = new ArrayList<>();
         for (OperationPolicyDTO operationPolicyDto : operationPolicyDTOList) {
-            OperationPolicy operationPolicy = fromDTOToOperationPolicy(operationPolicyDto);
+            Policy operationPolicy = fromDTOToOperationPolicy(operationPolicyDto);
             operationPolicyList.add(operationPolicy);
         }
         return operationPolicyList;
     }
 
-    public static OperationPolicy fromDTOToOperationPolicy(OperationPolicyDTO operationPolicyDTO) {
+    public static Policy fromDTOToOperationPolicy(OperationPolicyDTO operationPolicyDTO) {
 
-        OperationPolicy operationPolicy = new OperationPolicy();
+        Policy operationPolicy = new Policy();
         operationPolicy.setPolicyName(operationPolicyDTO.getPolicyName());
         operationPolicy.setPolicyVersion(operationPolicyDTO.getPolicyVersion());
         operationPolicy.setPolicyId(operationPolicyDTO.getPolicyId());
@@ -62,7 +62,7 @@ public class OperationPolicyMappingUtil {
         return operationPolicy;
     }
 
-    public static OperationPolicyDTO fromOperationPolicyToDTO(OperationPolicy operationPolicy) {
+    public static OperationPolicyDTO fromOperationPolicyToDTO(Policy operationPolicy) {
 
         OperationPolicyDTO dto = new OperationPolicyDTO();
         dto.setPolicyName(operationPolicy.getPolicyName());
@@ -72,14 +72,14 @@ public class OperationPolicyMappingUtil {
         return dto;
     }
 
-    public static APIOperationPoliciesDTO fromOperationPolicyListToDTO(List<OperationPolicy> operationPolicyList) {
+    public static APIOperationPoliciesDTO fromOperationPolicyListToDTO(List<Policy> operationPolicyList) {
 
         APIOperationPoliciesDTO dto = new APIOperationPoliciesDTO();
         List<OperationPolicyDTO> request = new ArrayList<>();
         List<OperationPolicyDTO> response = new ArrayList<>();
         List<OperationPolicyDTO> fault = new ArrayList<>();
         Collections.sort(operationPolicyList, new OperationPolicyComparator());
-        for (OperationPolicy op : operationPolicyList) {
+        for (Policy op : operationPolicyList) {
             OperationPolicyDTO policyDTO = fromOperationPolicyToDTO(op);
             if (APIConstants.OPERATION_SEQUENCE_TYPE_REQUEST.equals(op.getDirection())) {
                 request.add(policyDTO);
@@ -95,10 +95,10 @@ public class OperationPolicyMappingUtil {
         return dto;
     }
 
-    public static List<OperationPolicy> fromDTOToAPIOperationPoliciesList(
+    public static List<Policy> fromDTOToAPIOperationPoliciesList(
             APIOperationPoliciesDTO apiOperationPoliciesDTO) {
 
-        List<OperationPolicy> operationPoliciesList = new ArrayList<>();
+        List<Policy> operationPoliciesList = new ArrayList<>();
 
         if (apiOperationPoliciesDTO != null) {
             List<OperationPolicyDTO> request = apiOperationPoliciesDTO.getRequest();
@@ -108,7 +108,7 @@ public class OperationPolicyMappingUtil {
             int responseCount = 1;
             int faultCount = 1;
             for (OperationPolicyDTO op : request) {
-                OperationPolicy operationPolicy = fromDTOToOperationPolicy(op);
+                Policy operationPolicy = fromDTOToOperationPolicy(op);
                 operationPolicy.setDirection(APIConstants.OPERATION_SEQUENCE_TYPE_REQUEST);
                 operationPolicy.setOrder(requestCount);
                 operationPoliciesList.add(operationPolicy);
@@ -116,7 +116,7 @@ public class OperationPolicyMappingUtil {
             }
 
             for (OperationPolicyDTO op : response) {
-                OperationPolicy operationPolicy = fromDTOToOperationPolicy(op);
+                Policy operationPolicy = fromDTOToOperationPolicy(op);
                 operationPolicy.setDirection(APIConstants.OPERATION_SEQUENCE_TYPE_RESPONSE);
                 operationPolicy.setOrder(responseCount);
                 operationPoliciesList.add(operationPolicy);
@@ -124,7 +124,7 @@ public class OperationPolicyMappingUtil {
             }
 
             for (OperationPolicyDTO op : fault) {
-                OperationPolicy operationPolicy = fromDTOToOperationPolicy(op);
+                Policy operationPolicy = fromDTOToOperationPolicy(op);
                 operationPolicy.setDirection(APIConstants.OPERATION_SEQUENCE_TYPE_FAULT);
                 operationPolicy.setOrder(faultCount);
                 operationPoliciesList.add(operationPolicy);
@@ -135,7 +135,7 @@ public class OperationPolicyMappingUtil {
     }
 
     public static OperationPolicyDataListDTO fromOperationPolicyDataListToDTO(
-            List<OperationPolicyData> policyDataList, int offset, int limit) {
+            List<APIPolicyData> policyDataList, int offset, int limit) {
 
         List<OperationPolicyDataDTO> operationPolicyList = new ArrayList<>();
 
@@ -163,10 +163,10 @@ public class OperationPolicyMappingUtil {
         return dataListDTO;
     }
 
-    public static OperationPolicyDataDTO fromOperationPolicyDataToDTO(OperationPolicyData policyData) {
+    public static OperationPolicyDataDTO fromOperationPolicyDataToDTO(APIPolicyData policyData) {
 
         OperationPolicyDataDTO policyDataDTO = new OperationPolicyDataDTO();
-        OperationPolicySpecification policySpecification = policyData.getSpecification();
+        APIPolicySpecification policySpecification = policyData.getSpecification();
         policyDataDTO.setId(policyData.getPolicyId());
         policyDataDTO.setMd5(policyData.getMd5Hash());
         policyDataDTO.setIsAPISpecific(policyData.isApiSpecificPolicy());
@@ -181,7 +181,7 @@ public class OperationPolicyMappingUtil {
 
         if (policySpecification.getPolicyAttributes() != null) {
             List<OperationPolicySpecAttributeDTO> specAttributeDtoList = new ArrayList<>();
-            for (OperationPolicySpecAttribute specAttribute : policySpecification.getPolicyAttributes()) {
+            for (APIPolicySpecAttribute specAttribute : policySpecification.getPolicyAttributes()) {
                 OperationPolicySpecAttributeDTO specAttributeDTO =
                         fromOperationPolicySpecAttributesToDTO(specAttribute);
                 specAttributeDtoList.add(specAttributeDTO);
@@ -192,7 +192,7 @@ public class OperationPolicyMappingUtil {
     }
 
     public static OperationPolicySpecAttributeDTO fromOperationPolicySpecAttributesToDTO(
-            OperationPolicySpecAttribute specAttribute) {
+            APIPolicySpecAttribute specAttribute) {
 
         OperationPolicySpecAttributeDTO specAttributeDTO = new OperationPolicySpecAttributeDTO();
         specAttributeDTO.setName(specAttribute.getName());
@@ -202,7 +202,7 @@ public class OperationPolicyMappingUtil {
         specAttributeDTO.setValidationRegex(specAttribute.getValidationRegex());
         specAttributeDTO.setRequired(specAttribute.isRequired());
         specAttributeDTO.setDefaultValue(specAttribute.getDefaultValue());
-        if (specAttribute.getType().equals(OperationPolicySpecAttribute.AttributeType.Enum)) {
+        if (specAttribute.getType().equals(APIPolicySpecAttribute.AttributeType.Enum)) {
             specAttributeDTO.setAllowedValues(specAttribute.getAllowedValues());
         }
         return specAttributeDTO;

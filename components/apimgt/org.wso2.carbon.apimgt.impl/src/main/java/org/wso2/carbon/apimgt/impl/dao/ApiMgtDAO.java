@@ -39,51 +39,11 @@ import org.wso2.carbon.apimgt.api.dto.ConditionDTO;
 import org.wso2.carbon.apimgt.api.dto.ConditionGroupDTO;
 import org.wso2.carbon.apimgt.api.dto.KeyManagerConfigurationDTO;
 import org.wso2.carbon.apimgt.api.dto.UserApplicationAPIUsage;
-import org.wso2.carbon.apimgt.api.model.API;
-import org.wso2.carbon.apimgt.api.model.APICategory;
-import org.wso2.carbon.apimgt.api.model.APIIdentifier;
-import org.wso2.carbon.apimgt.api.model.APIInfo;
-import org.wso2.carbon.apimgt.api.model.APIKey;
-import org.wso2.carbon.apimgt.api.model.APIProduct;
-import org.wso2.carbon.apimgt.api.model.APIProductIdentifier;
-import org.wso2.carbon.apimgt.api.model.APIProductResource;
-import org.wso2.carbon.apimgt.api.model.APIRevision;
-import org.wso2.carbon.apimgt.api.model.APIRevisionDeployment;
-import org.wso2.carbon.apimgt.api.model.APIStatus;
-import org.wso2.carbon.apimgt.api.model.APIStore;
-import org.wso2.carbon.apimgt.api.model.ApiTypeWrapper;
-import org.wso2.carbon.apimgt.api.model.Application;
-import org.wso2.carbon.apimgt.api.model.ApplicationInfo;
-import org.wso2.carbon.apimgt.api.model.BlockConditionsDTO;
-import org.wso2.carbon.apimgt.api.model.Comment;
-import org.wso2.carbon.apimgt.api.model.CommentList;
-import org.wso2.carbon.apimgt.api.model.DeployedAPIRevision;
-import org.wso2.carbon.apimgt.api.model.Environment;
-import org.wso2.carbon.apimgt.api.model.Identifier;
-import org.wso2.carbon.apimgt.api.model.KeyManager;
-import org.wso2.carbon.apimgt.api.model.LifeCycleEvent;
-import org.wso2.carbon.apimgt.api.model.MonetizationUsagePublishInfo;
-import org.wso2.carbon.apimgt.api.model.OAuthAppRequest;
-import org.wso2.carbon.apimgt.api.model.OAuthApplicationInfo;
-import org.wso2.carbon.apimgt.api.model.OperationPolicy;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyData;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyDefinition;
-import org.wso2.carbon.apimgt.api.model.OperationPolicySpecAttribute;
-import org.wso2.carbon.apimgt.api.model.OperationPolicySpecification;
-import org.wso2.carbon.apimgt.api.model.Pagination;
-import org.wso2.carbon.apimgt.api.model.ResourcePath;
-import org.wso2.carbon.apimgt.api.model.Scope;
-import org.wso2.carbon.apimgt.api.model.SharedScopeUsage;
-import org.wso2.carbon.apimgt.api.model.SubscribedAPI;
-import org.wso2.carbon.apimgt.api.model.Subscriber;
-import org.wso2.carbon.apimgt.api.model.Tier;
-import org.wso2.carbon.apimgt.api.model.URITemplate;
-import org.wso2.carbon.apimgt.api.model.VHost;
-import org.wso2.carbon.apimgt.api.model.Workflow;
+import org.wso2.carbon.apimgt.api.model.*;
+import org.wso2.carbon.apimgt.api.model.Policy;
 import org.wso2.carbon.apimgt.api.model.botDataAPI.BotDetectionData;
 import org.wso2.carbon.apimgt.api.model.graphql.queryanalysis.CustomComplexityDetails;
 import org.wso2.carbon.apimgt.api.model.graphql.queryanalysis.GraphqlComplexityInfo;
-import org.wso2.carbon.apimgt.api.model.policy.APIPolicy;
 import org.wso2.carbon.apimgt.api.model.policy.ApplicationPolicy;
 import org.wso2.carbon.apimgt.api.model.policy.BandwidthLimit;
 import org.wso2.carbon.apimgt.api.model.policy.Condition;
@@ -93,7 +53,6 @@ import org.wso2.carbon.apimgt.api.model.policy.HeaderCondition;
 import org.wso2.carbon.apimgt.api.model.policy.IPCondition;
 import org.wso2.carbon.apimgt.api.model.policy.JWTClaimsCondition;
 import org.wso2.carbon.apimgt.api.model.policy.Pipeline;
-import org.wso2.carbon.apimgt.api.model.policy.Policy;
 import org.wso2.carbon.apimgt.api.model.policy.PolicyConstants;
 import org.wso2.carbon.apimgt.api.model.policy.QueryParameterCondition;
 import org.wso2.carbon.apimgt.api.model.policy.QuotaPolicy;
@@ -5828,10 +5787,13 @@ public class ApiMgtDAO {
 
                     if (migrationEnabled == null) {
                         if (uriTemplate.getOperationPolicies() != null) {
-                            for (OperationPolicy policy : uriTemplate.getOperationPolicies()) {
+
+
+
+                            for (Policy policy : uriTemplate.getOperationPolicies()) {
                                 if (!updatedPoliciesMap.keySet().contains(policy.getPolicyId())) {
                                     //Check whether API Specific policies available
-                                    OperationPolicyData existingPolicy =
+                                    APIPolicyData existingPolicy =
                                             getAPISpecificOperationPolicyByPolicyID(connection, policy.getPolicyId(),
                                                     api.getUuid(), tenantDomain, false);
                                     clonedPolicyId = policy.getPolicyId();
@@ -11049,13 +11011,13 @@ public class ApiMgtDAO {
     }
 
     /**
-     * Wrapper method for {@link #addAPIPolicy(APIPolicy, Connection)} to add
+     * Wrapper method for {@link #addAPIPolicy(org.wso2.carbon.apimgt.api.model.policy.APIPolicy, Connection)} to add
      * API Policy without managing the database connection manually.
      *
      * @param policy policy object to add
      * @throws APIManagementException
      */
-    public APIPolicy addAPIPolicy(APIPolicy policy) throws APIManagementException {
+    public org.wso2.carbon.apimgt.api.model.policy.APIPolicy addAPIPolicy(org.wso2.carbon.apimgt.api.model.policy.APIPolicy policy) throws APIManagementException {
 
         Connection connection = null;
 
@@ -11115,7 +11077,7 @@ public class ApiMgtDAO {
      * @param policy policy object defining the throttle policy
      * @throws SQLException
      */
-    private void addAPIPolicy(APIPolicy policy, Connection conn) throws SQLException {
+    private void addAPIPolicy(org.wso2.carbon.apimgt.api.model.policy.APIPolicy policy, Connection conn) throws SQLException {
 
         ResultSet resultSet = null;
         PreparedStatement policyStatement = null;
@@ -11161,7 +11123,7 @@ public class ApiMgtDAO {
      * @param policy policy object defining the throttle policy
      * @throws APIManagementException
      */
-    public APIPolicy updateAPIPolicy(APIPolicy policy) throws APIManagementException {
+    public org.wso2.carbon.apimgt.api.model.policy.APIPolicy updateAPIPolicy(org.wso2.carbon.apimgt.api.model.policy.APIPolicy policy) throws APIManagementException {
 
         String updateQuery;
         int policyId = 0;
@@ -11605,9 +11567,9 @@ public class ApiMgtDAO {
      * @return APIPolicy ArrayList
      * @throws APIManagementException
      */
-    public APIPolicy[] getAPIPolicies(int tenantID) throws APIManagementException {
+    public org.wso2.carbon.apimgt.api.model.policy.APIPolicy[] getAPIPolicies(int tenantID) throws APIManagementException {
 
-        List<APIPolicy> policies = new ArrayList<APIPolicy>();
+        List<org.wso2.carbon.apimgt.api.model.policy.APIPolicy> policies = new ArrayList<org.wso2.carbon.apimgt.api.model.policy.APIPolicy>();
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -11623,7 +11585,7 @@ public class ApiMgtDAO {
             ps.setInt(1, tenantID);
             rs = ps.executeQuery();
             while (rs.next()) {
-                APIPolicy apiPolicy = new APIPolicy(rs.getString(ThrottlePolicyConstants.COLUMN_NAME));
+                org.wso2.carbon.apimgt.api.model.policy.APIPolicy apiPolicy = new org.wso2.carbon.apimgt.api.model.policy.APIPolicy(rs.getString(ThrottlePolicyConstants.COLUMN_NAME));
                 setCommonPolicyDetails(apiPolicy, rs);
                 apiPolicy.setUserLevel(rs.getString(ThrottlePolicyConstants.COLUMN_APPLICABLE_LEVEL));
 
@@ -11634,7 +11596,7 @@ public class ApiMgtDAO {
         } finally {
             APIMgtDBUtil.closeAllConnections(ps, conn, rs);
         }
-        return policies.toArray(new APIPolicy[policies.size()]);
+        return policies.toArray(new org.wso2.carbon.apimgt.api.model.policy.APIPolicy[policies.size()]);
     }
 
     /**
@@ -11944,17 +11906,17 @@ public class ApiMgtDAO {
     }
 
     /**
-     * Retrieves {@link APIPolicy} with name <code>policyName</code> and tenant Id <code>tenantNId</code>
+     * Retrieves {@link org.wso2.carbon.apimgt.api.model.policy.APIPolicy} with name <code>policyName</code> and tenant Id <code>tenantNId</code>
      * <p>This will retrieve complete details about the APIPolicy with all pipelins and conditions.</p>
      *
      * @param policyName name of the policy to retrieve from the database
      * @param tenantId   tenantId of the policy
-     * @return {@link APIPolicy}
+     * @return {@link org.wso2.carbon.apimgt.api.model.policy.APIPolicy}
      * @throws APIManagementException
      */
-    public APIPolicy getAPIPolicy(String policyName, int tenantId) throws APIManagementException {
+    public org.wso2.carbon.apimgt.api.model.policy.APIPolicy getAPIPolicy(String policyName, int tenantId) throws APIManagementException {
 
-        APIPolicy policy = null;
+        org.wso2.carbon.apimgt.api.model.policy.APIPolicy policy = null;
         Connection connection = null;
         PreparedStatement selectStatement = null;
         ResultSet resultSet = null;
@@ -11973,7 +11935,7 @@ public class ApiMgtDAO {
             // Should return only single result
             resultSet = selectStatement.executeQuery();
             if (resultSet.next()) {
-                policy = new APIPolicy(resultSet.getString(ThrottlePolicyConstants.COLUMN_NAME));
+                policy = new org.wso2.carbon.apimgt.api.model.policy.APIPolicy(resultSet.getString(ThrottlePolicyConstants.COLUMN_NAME));
                 setCommonPolicyDetails(policy, resultSet);
                 policy.setUserLevel(resultSet.getString(ThrottlePolicyConstants.COLUMN_APPLICABLE_LEVEL));
                 policy.setPipelines(getPipelines(policy.getPolicyId()));
@@ -11987,16 +11949,16 @@ public class ApiMgtDAO {
     }
 
     /**
-     * Retrieves {@link APIPolicy} with name <code>uuid</code>
+     * Retrieves {@link org.wso2.carbon.apimgt.api.model.policy.APIPolicy} with name <code>uuid</code>
      * <p>This will retrieve complete details about the APIPolicy with all pipelines and conditions.</p>
      *
      * @param uuid uuid of the policy to retrieve from the database
-     * @return {@link APIPolicy}
+     * @return {@link org.wso2.carbon.apimgt.api.model.policy.APIPolicy}
      * @throws APIManagementException
      */
-    public APIPolicy getAPIPolicyByUUID(String uuid) throws APIManagementException {
+    public org.wso2.carbon.apimgt.api.model.policy.APIPolicy getAPIPolicyByUUID(String uuid) throws APIManagementException {
 
-        APIPolicy policy = null;
+        org.wso2.carbon.apimgt.api.model.policy.APIPolicy policy = null;
         Connection connection = null;
         PreparedStatement selectStatement = null;
         ResultSet resultSet = null;
@@ -12014,7 +11976,7 @@ public class ApiMgtDAO {
             // Should return only single result
             resultSet = selectStatement.executeQuery();
             if (resultSet.next()) {
-                policy = new APIPolicy(resultSet.getString(ThrottlePolicyConstants.COLUMN_NAME));
+                policy = new org.wso2.carbon.apimgt.api.model.policy.APIPolicy(resultSet.getString(ThrottlePolicyConstants.COLUMN_NAME));
                 setCommonPolicyDetails(policy, resultSet);
                 policy.setUserLevel(resultSet.getString(ThrottlePolicyConstants.COLUMN_APPLICABLE_LEVEL));
                 policy.setPipelines(getPipelines(policy.getPolicyId()));
@@ -12871,7 +12833,7 @@ public class ApiMgtDAO {
      * @param policy          <code>Policy</code> object with data
      * @throws SQLException
      */
-    private void setCommonParametersForPolicy(PreparedStatement policyStatement, Policy policy) throws SQLException {
+    private void setCommonParametersForPolicy(PreparedStatement policyStatement, org.wso2.carbon.apimgt.api.model.policy.Policy policy) throws SQLException {
 
         policyStatement.setString(1, policy.getPolicyName());
         if (!StringUtils.isEmpty(policy.getDisplayName())) {
@@ -12913,16 +12875,16 @@ public class ApiMgtDAO {
      * Populated common attributes of policy type objects to <code>policy</code>
      * from <code>resultSet</code>
      *
-     * @param policy    initiallized {@link Policy} object to populate
+     * @param policy    initiallized {@link org.wso2.carbon.apimgt.api.model.policy.Policy} object to populate
      * @param resultSet {@link ResultSet} with data to populate <code>policy</code>
      * @throws SQLException
      */
-    private void setCommonPolicyDetails(Policy policy, ResultSet resultSet) throws SQLException {
+    private void setCommonPolicyDetails(org.wso2.carbon.apimgt.api.model.policy.Policy policy, ResultSet resultSet) throws SQLException {
 
         QuotaPolicy quotaPolicy = new QuotaPolicy();
         String prefix = "";
 
-        if (policy instanceof APIPolicy) {
+        if (policy instanceof org.wso2.carbon.apimgt.api.model.policy.APIPolicy) {
             prefix = "DEFAULT_";
         }
 
@@ -14515,7 +14477,7 @@ public class ApiMgtDAO {
                             // Adding api id to uri template id just to store value
                             uriTemplate.setId(rs.getInt("API_ID"));
                         }
-                        List<OperationPolicy> operationPolicies = getOperationPoliciesOfURITemplate(connection,
+                        List<Policy> operationPolicies = getOperationPoliciesOfURITemplate(connection,
                                 urlMappingId);
                         uriTemplate.setOperationPolicies(operationPolicies);
                         urlMappingList.add(uriTemplate);
@@ -14604,10 +14566,10 @@ public class ApiMgtDAO {
                     }
                     try (ResultSet rs = getRevisionedURLMappingsStatement.executeQuery()) {
                         while (rs.next()) {
-                            for (OperationPolicy policy : urlMapping.getOperationPolicies()) {
+                            for (Policy policy : urlMapping.getOperationPolicies()) {
                                 if (!clonedPoliciesMap.keySet().contains(policy.getPolicyId())) {
                                     //Check whether API Specific policies available
-                                    OperationPolicyData existingPolicy =
+                                    APIPolicyData existingPolicy =
                                             getAPISpecificOperationPolicyByPolicyID(connection,
                                                     policy.getPolicyId(), uuid, tenantDomain, false);
                                     String clonedPolicyId = policy.getPolicyId();
@@ -14913,9 +14875,9 @@ public class ApiMgtDAO {
                                                 SQLConstants.OperationPolicyConstants.GET_OPERATION_POLICIES_BY_URI_TEMPLATE_ID)) {
                                     policiesStatement.setInt(1, uriTemplateId);
                                     try (ResultSet policiesResult = policiesStatement.executeQuery()) {
-                                        List<OperationPolicy> operationPolicies = new ArrayList<>();
+                                        List<Policy> operationPolicies = new ArrayList<>();
                                         while (policiesResult.next()) {
-                                            OperationPolicy policy = populateOperationPolicyWithRS(policiesResult);
+                                            Policy policy = populateOperationPolicyWithRS(policiesResult);
                                             operationPolicies.add(policy);
                                         }
                                         uriTemplate.setOperationPolicies(operationPolicies);
@@ -14971,9 +14933,9 @@ public class ApiMgtDAO {
                                                 SQLConstants.OperationPolicyConstants.GET_OPERATION_POLICIES_BY_URI_TEMPLATE_ID)) {
                                     policiesStatement.setInt(1, uriTemplateId);
                                     try (ResultSet policiesResult = policiesStatement.executeQuery()) {
-                                        List<OperationPolicy> operationPolicies = new ArrayList<>();
+                                        List<Policy> operationPolicies = new ArrayList<>();
                                         while (policiesResult.next()) {
-                                            OperationPolicy policy = populateOperationPolicyWithRS(policiesResult);
+                                            Policy policy = populateOperationPolicyWithRS(policiesResult);
                                             operationPolicies.add(policy);
                                         }
                                         uriTemplate.setOperationPolicies(operationPolicies);
@@ -16433,7 +16395,7 @@ public class ApiMgtDAO {
                             }
 
                             if (urlMapping.getOperationPolicies().size() > 0) {
-                                for (OperationPolicy policy : urlMapping.getOperationPolicies()) {
+                                for (Policy policy : urlMapping.getOperationPolicies()) {
                                     if (!clonedPolicyMap.keySet().contains(policy.getPolicyId())) {
                                         // Since we are creating a new revision, if the policy is not found in the policy map,
                                         // we have to clone the policy.
@@ -17328,7 +17290,7 @@ public class ApiMgtDAO {
                         getCurrentAPIURLMappingsStatement.setString(5, urlMapping.getThrottlingTier());
                         try (ResultSet rs = getCurrentAPIURLMappingsStatement.executeQuery()) {
                             while (rs.next()) {
-                                for (OperationPolicy policy : urlMapping.getOperationPolicies()) {
+                                for (Policy policy : urlMapping.getOperationPolicies()) {
                                     if (!restoredPolicyMap.keySet().contains(policy.getPolicyName())) {
                                         String restoredPolicyId = restoreOperationPolicyRevision(connection,
                                                 apiRevision.getApiUUID(), policy.getPolicyId(), apiRevision.getId(),
@@ -17645,7 +17607,7 @@ public class ApiMgtDAO {
                     }
                     try (ResultSet rs = getRevisionedURLMappingsStatement.executeQuery()) {
                         while (rs.next()) {
-                            for (OperationPolicy policy : urlMapping.getOperationPolicies()) {
+                            for (Policy policy : urlMapping.getOperationPolicies()) {
                                 String clonedPolicyId;
                                 if (!clonedPoliciesMap.keySet().contains(policy.getPolicyId())) {
                                     // Since we are creating a new revision, we need to clone all the policies from current status.
@@ -17879,7 +17841,7 @@ public class ApiMgtDAO {
                             }
 
                             if (urlMapping.getOperationPolicies().size() > 0) {
-                                for (OperationPolicy policy : urlMapping.getOperationPolicies()) {
+                                for (Policy policy : urlMapping.getOperationPolicies()) {
                                     if (!clonedPoliciesMap.keySet().contains(policy.getPolicyName())) {
                                         String policyId = restoreOperationPolicyRevision(connection,
                                                 apiRevision.getApiUUID(), policy.getPolicyId(), apiRevision.getId(),
@@ -18355,9 +18317,9 @@ public class ApiMgtDAO {
                 try (PreparedStatement preparedStatement =
                              connection.prepareStatement(SQLConstants.OperationPolicyConstants.ADD_API_OPERATION_POLICY_MAPPING)) {
                     for (URITemplate uriTemplate : uriTemplates){
-                        List<OperationPolicy> operationPolicies = uriTemplate.getOperationPolicies();
+                        List<Policy> operationPolicies = uriTemplate.getOperationPolicies();
                         if (operationPolicies != null && !operationPolicies.isEmpty()){
-                            for (OperationPolicy operationPolicy : operationPolicies){
+                            for (Policy operationPolicy : operationPolicies){
                                 Gson gson = new Gson();
                                 String paramJSON = gson.toJson(operationPolicy.getParameters());
                                 preparedStatement.setInt(1, uriTemplate.getId());
@@ -18513,10 +18475,10 @@ public class ApiMgtDAO {
      * @return UUID of the newly created shared policy
      * @throws APIManagementException
      */
-    public String addCommonOperationPolicy(OperationPolicyData policyData) throws APIManagementException {
+    public String addCommonOperationPolicy(APIPolicyData policyData) throws APIManagementException {
 
         String policyUUID = null;
-        OperationPolicySpecification policySpecification = policyData.getSpecification();
+        APIPolicySpecification policySpecification = policyData.getSpecification();
         try (Connection connection = APIMgtDBUtil.getConnection()) {
             try {
                 connection.setAutoCommit(false);
@@ -18547,10 +18509,10 @@ public class ApiMgtDAO {
      * @throws APIManagementException
      */
     public String addAPISpecificOperationPolicy(String apiUUID, String revisionUUID,
-                                                OperationPolicyData policyData)
+                                                APIPolicyData policyData)
             throws APIManagementException {
 
-        OperationPolicySpecification policySpecification = policyData.getSpecification();
+        APIPolicySpecification policySpecification = policyData.getSpecification();
         try (Connection connection = APIMgtDBUtil.getConnection()) {
             try {
                 connection.setAutoCommit(false);
@@ -18570,7 +18532,7 @@ public class ApiMgtDAO {
         return null;
     }
 
-    private String addAPISpecificOperationPolicy(Connection connection, OperationPolicyData policyData,
+    private String addAPISpecificOperationPolicy(Connection connection, APIPolicyData policyData,
                                                  String apiUUID, String revisionUUID, String policyUUID,
                                                  String clonedPolicyUUID)
             throws SQLException {
@@ -18605,10 +18567,10 @@ public class ApiMgtDAO {
      * @return UUID of the newly created policy
      * @throws SQLException
      */
-    private String addOperationPolicyContent(Connection connection, OperationPolicyData policyData)
+    private String addOperationPolicyContent(Connection connection, APIPolicyData policyData)
             throws SQLException {
 
-        OperationPolicySpecification policySpecification = policyData.getSpecification();
+        APIPolicySpecification policySpecification = policyData.getSpecification();
         String dbQuery = SQLConstants.OperationPolicyConstants.ADD_OPERATION_POLICY;
         String policyUUID = policyData.getPolicyId();;
         if (policyUUID == null) {
@@ -18631,8 +18593,8 @@ public class ApiMgtDAO {
             statement.setString(12, policyData.getMd5Hash());
             statement.executeUpdate();
 
-            if (policyData.getSynapsePolicyDefinition() != null) {
-                addOperationPolicyDefinition(connection, policyUUID, policyData.getSynapsePolicyDefinition());
+            if (policyData.getSynapsePolicyTemplate() != null) {
+                addOperationPolicyDefinition(connection, policyUUID, policyData.getSynapsePolicyTemplate());
             }
             if (policyData.getCcPolicyDefinition() != null) {
                 addOperationPolicyDefinition(connection, policyUUID, policyData.getCcPolicyDefinition());
@@ -18648,7 +18610,7 @@ public class ApiMgtDAO {
      * @param policyData Updated policy definition
      * @throws APIManagementException
      */
-    public void updateOperationPolicy(String policyId, OperationPolicyData policyData)
+    public void updateOperationPolicy(String policyId, APIPolicyData policyData)
             throws APIManagementException {
 
         try (Connection connection = APIMgtDBUtil.getConnection()) {
@@ -18668,10 +18630,10 @@ public class ApiMgtDAO {
      * @param policyData Updated policy definition
      * @throws SQLException
      */
-    private void updateOperationPolicy(Connection connection, String policyId, OperationPolicyData policyData)
+    private void updateOperationPolicy(Connection connection, String policyId, APIPolicyData policyData)
             throws SQLException {
 
-        OperationPolicySpecification policySpecification = policyData.getSpecification();
+        APIPolicySpecification policySpecification = policyData.getSpecification();
         try (PreparedStatement statement = connection.prepareStatement(
                 SQLConstants.OperationPolicyConstants.UPDATE_OPERATION_POLICY_CONTENT)) {
 
@@ -18690,8 +18652,8 @@ public class ApiMgtDAO {
             statement.setString(12, policyId);
             statement.executeUpdate();
 
-            if (policyData.getSynapsePolicyDefinition() != null) {
-                updateOperationPolicyDefinition(connection, policyId, policyData.getSynapsePolicyDefinition());
+            if (policyData.getSynapsePolicyTemplate() != null) {
+                updateOperationPolicyDefinition(connection, policyId, policyData.getSynapsePolicyTemplate());
             }
             if (policyData.getCcPolicyDefinition() != null) {
                 updateOperationPolicyDefinition(connection, policyId, policyData.getCcPolicyDefinition());
@@ -18787,7 +18749,7 @@ public class ApiMgtDAO {
                     } else {
                         uriTemplate = uriTemplates.get(urlTemplateKey);
                     }
-                    OperationPolicy operationPolicy = populateOperationPolicyWithRS(rs);
+                    Policy operationPolicy = populateOperationPolicyWithRS(rs);
                     uriTemplate.addOperationPolicy(operationPolicy);
                     uriTemplate.setHTTPVerb(httpMethod);
                     uriTemplate.setUriTemplate(urlPattern);
@@ -18810,19 +18772,19 @@ public class ApiMgtDAO {
      * @throws SQLException
      * @throws APIManagementException
      */
-    private List<OperationPolicy> getOperationPoliciesOfURITemplate(Connection connection, int urlMappingId)
+    private List<Policy> getOperationPoliciesOfURITemplate(Connection connection, int urlMappingId)
             throws SQLException, APIManagementException {
 
         if (connection == null) {
             connection = APIMgtDBUtil.getConnection();
         }
-        List<OperationPolicy> operationPolicies = new ArrayList<>();
+        List<Policy> operationPolicies = new ArrayList<>();
         try (PreparedStatement ps = connection.prepareStatement(
                      SQLConstants.OperationPolicyConstants.GET_OPERATION_POLICIES_BY_URI_TEMPLATE_ID)) {
             ps.setInt(1, urlMappingId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    OperationPolicy policy = populateOperationPolicyWithRS(rs);
+                    Policy policy = populateOperationPolicyWithRS(rs);
                     operationPolicies.add(policy);
                 }
             }
@@ -18866,7 +18828,7 @@ public class ApiMgtDAO {
 
                     URITemplate uriTemplate = uriTemplates.get(key);
                     if (uriTemplate != null) {
-                        OperationPolicy operationPolicy = populateOperationPolicyWithRS(rs);
+                        Policy operationPolicy = populateOperationPolicyWithRS(rs);
                         uriTemplate.addOperationPolicy(operationPolicy);
                     }
                 }
@@ -18909,7 +18871,7 @@ public class ApiMgtDAO {
 
                     URITemplate uriTemplate = uriTemplates.get(uriTemplateId);
                     if (uriTemplate != null) {
-                        OperationPolicy operationPolicy = populateOperationPolicyWithRS(rs);
+                        Policy operationPolicy = populateOperationPolicyWithRS(rs);
                         uriTemplate.addOperationPolicy(operationPolicy);
                     }
                 }
@@ -18938,7 +18900,7 @@ public class ApiMgtDAO {
 
                     URITemplate uriTemplate = uriTemplates.get(key);
                     if (uriTemplate != null) {
-                        OperationPolicy operationPolicy = populateOperationPolicyWithRS(rs);
+                        Policy operationPolicy = populateOperationPolicyWithRS(rs);
                         uriTemplate.addOperationPolicy(operationPolicy);
                     }
                 }
@@ -18958,7 +18920,7 @@ public class ApiMgtDAO {
      **/
     private String cloneCommonPolicyToAPI(Connection connection, String commonPolicyId, String clonedPolicyId,
                                           String apiUUID) throws APIManagementException, SQLException {
-        OperationPolicyData policyData = getOperationPolicyByPolicyID(connection, commonPolicyId, true);
+        APIPolicyData policyData = getOperationPolicyByPolicyID(connection, commonPolicyId, true);
         if (policyData != null) {
             // If we are taking a clone from common policy, common policy's Id is used as the CLONED_POLICY_ID.
             return addAPISpecificOperationPolicy(connection, policyData, apiUUID, null, clonedPolicyId, commonPolicyId);
@@ -18988,7 +18950,7 @@ public class ApiMgtDAO {
                                                           String organization)
             throws APIManagementException, SQLException {
 
-        OperationPolicyData policyData = getAPISpecificOperationPolicyByPolicyID(connection, workingCopyPolicyId,
+        APIPolicyData policyData = getAPISpecificOperationPolicyByPolicyID(connection, workingCopyPolicyId,
                 apiUUID, organization, true);
         // Since we import all the policies to API at API update, getting the policy from API specific policy list is enough.
         // Cloned common policy UUID is mandatory if it's a clone as without it restore will be broken.
@@ -19038,7 +19000,7 @@ public class ApiMgtDAO {
                                                          String previousPolicyUUID, String newAPIVersionUUID,
                                                          String newPolicyUUID, String organization)
             throws APIManagementException, SQLException {
-        OperationPolicyData policyData = getAPISpecificOperationPolicyByPolicyID(connection, previousPolicyUUID,
+        APIPolicyData policyData = getAPISpecificOperationPolicyByPolicyID(connection, previousPolicyUUID,
                 previousAPIVersionUUID, organization, true);
         if (policyData != null) {
             return addAPISpecificOperationPolicy(connection, policyData, newAPIVersionUUID, null, newPolicyUUID,
@@ -19060,7 +19022,7 @@ public class ApiMgtDAO {
      * @throws SQLException
      **/
     private void updateAPISpecificOperationPolicyWithClonedPolicyId(Connection connection, String policyId,
-                                                                    OperationPolicyData policyData)
+                                                                    APIPolicyData policyData)
             throws SQLException {
 
         if (policyData.getClonedCommonPolicyId() != null) {
@@ -19088,13 +19050,13 @@ public class ApiMgtDAO {
                                                   int revisionId, String organization, boolean isProduct)
             throws SQLException, APIManagementException {
 
-        OperationPolicyData revisionedPolicy = getAPISpecificOperationPolicyByPolicyID(connection, policyId,
+        APIPolicyData revisionedPolicy = getAPISpecificOperationPolicyByPolicyID(connection, policyId,
                 apiUUID, organization, true);
         String restoredPolicyId = null;
         if (revisionedPolicy != null) {
             // First check whether there exists a API specific policy for same policy name with revision uuid null
             // This is the state where we record the policies applied in the working copy.
-            OperationPolicyData apiSpecificPolicy = getAPISpecificOperationPolicyByPolicyName(connection,
+            APIPolicyData apiSpecificPolicy = getAPISpecificOperationPolicyByPolicyName(connection,
                     revisionedPolicy.getSpecification().getName(), revisionedPolicy.getSpecification().getVersion(),
                     revisionedPolicy.getApiUUID(), null, organization, false);
             if (apiSpecificPolicy != null) {
@@ -19117,7 +19079,7 @@ public class ApiMgtDAO {
             } else {
                 if (revisionedPolicy.isClonedPolicy()) {
                     // Check for a common operation policy only if it is a cloned policy.
-                    OperationPolicyData commonPolicy = getCommonOperationPolicyByPolicyID(connection,
+                    APIPolicyData commonPolicy = getCommonOperationPolicyByPolicyID(connection,
                             revisionedPolicy.getClonedCommonPolicyId(), organization, false);
                     if (commonPolicy != null) {
                         if (commonPolicy.getMd5Hash().equals(revisionedPolicy.getMd5Hash())) {
@@ -19197,16 +19159,16 @@ public class ApiMgtDAO {
      * @return operation policy
      * @throws SQLException
      */
-    private OperationPolicyData getOperationPolicyByPolicyID(Connection connection, String policyId,
-                                                             boolean isWithPolicyDefinition) throws SQLException {
+    private APIPolicyData getOperationPolicyByPolicyID(Connection connection, String policyId,
+                                                       boolean isWithPolicyDefinition) throws SQLException {
 
         String dbQuery = SQLConstants.OperationPolicyConstants.GET_OPERATION_POLICY_FROM_POLICY_ID;
-        OperationPolicyData policyData = null;
+        APIPolicyData policyData = null;
         try (PreparedStatement statement = connection.prepareStatement(dbQuery)) {
             statement.setString(1, policyId);
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
-                    policyData = new OperationPolicyData();
+                    policyData = new APIPolicyData();
                     policyData.setPolicyId(policyId);
                     policyData.setOrganization(rs.getString("ORGANIZATION"));
                     policyData.setMd5Hash(rs.getString("POLICY_MD5"));
@@ -19236,9 +19198,9 @@ public class ApiMgtDAO {
      * @return operation policy
      * @throws APIManagementException
      */
-    public OperationPolicyData getAPISpecificOperationPolicyByPolicyID(String policyId, String apiUUID,
-                                                                       String organization,
-                                                                       boolean isWithPolicyDefinition)
+    public APIPolicyData getAPISpecificOperationPolicyByPolicyID(String policyId, String apiUUID,
+                                                                 String organization,
+                                                                 boolean isWithPolicyDefinition)
             throws APIManagementException {
 
         try (Connection connection = APIMgtDBUtil.getConnection()) {
@@ -19251,22 +19213,22 @@ public class ApiMgtDAO {
         return null;
     }
 
-    private OperationPolicyData getAPISpecificOperationPolicyByPolicyID(Connection connection, String policyId,
-                                                                        String apiUUID,
-                                                                        String organization,
-                                                                        boolean isWithPolicyDefinition)
+    private APIPolicyData getAPISpecificOperationPolicyByPolicyID(Connection connection, String policyId,
+                                                                  String apiUUID,
+                                                                  String organization,
+                                                                  boolean isWithPolicyDefinition)
             throws SQLException {
 
         String dbQuery =
                 SQLConstants.OperationPolicyConstants.GET_API_SPECIFIC_OPERATION_POLICY_FROM_POLICY_ID;
-        OperationPolicyData policyData = null;
+        APIPolicyData policyData = null;
         try (PreparedStatement statement = connection.prepareStatement(dbQuery)) {
             statement.setString(1, policyId);
             statement.setString(2, organization);
             statement.setString(3, apiUUID);
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
-                    policyData = new OperationPolicyData();
+                    policyData = new APIPolicyData();
                     policyData.setPolicyId(policyId);
                     policyData.setApiUUID(apiUUID);
                     policyData.setOrganization(organization);
@@ -19286,10 +19248,10 @@ public class ApiMgtDAO {
         return policyData;
     }
 
-    private List<OperationPolicyDefinition> getPolicyDefinitionForPolicyId(Connection connection, String policyId)
+    private List<APIPolicyTemplate> getPolicyDefinitionForPolicyId(Connection connection, String policyId)
             throws SQLException {
 
-        List<OperationPolicyDefinition> operationPolicyDefinitions = new ArrayList<>();
+        List<APIPolicyTemplate> operationPolicyDefinitions = new ArrayList<>();
 
         String dbQuery = SQLConstants.OperationPolicyConstants.GET_OPERATION_POLICY_DEFINITION_FROM_POLICY_ID;
         try (PreparedStatement statement = connection.prepareStatement(dbQuery)) {
@@ -19297,12 +19259,12 @@ public class ApiMgtDAO {
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
                     String policyDefinitionString;
-                    OperationPolicyDefinition policyDefinition = new OperationPolicyDefinition();
+                    APIPolicyTemplate policyDefinition = new APIPolicyTemplate();
                     try (InputStream policyDefinitionStream = rs.getBinaryStream("POLICY_DEFINITION")) {
                         policyDefinitionString = IOUtils.toString(policyDefinitionStream);
                         policyDefinition.setContent(policyDefinitionString);
                         policyDefinition.setGatewayType(
-                                OperationPolicyDefinition.GatewayType.valueOf(rs.getString("GATEWAY_TYPE")));
+                                APIPolicyTemplate.GatewayType.valueOf(rs.getString("GATEWAY_TYPE")));
                         policyDefinition.setMd5Hash(rs.getString("DEFINITION_MD5"));
 
                         operationPolicyDefinitions.add(policyDefinition);
@@ -19317,14 +19279,14 @@ public class ApiMgtDAO {
     }
 
 
-    public void populatePolicyDefinitions(Connection connection, String policyId, OperationPolicyData policyData)
+    public void populatePolicyDefinitions(Connection connection, String policyId, APIPolicyData policyData)
             throws SQLException {
         if (policyId != null && !policyId.isEmpty()) {
-            List<OperationPolicyDefinition> policyDefinitions = getPolicyDefinitionForPolicyId(connection, policyId);
-            for (OperationPolicyDefinition policyDefinition : policyDefinitions) {
-                if (OperationPolicyDefinition.GatewayType.Synapse.equals(policyDefinition.getGatewayType())) {
-                    policyData.setSynapsePolicyDefinition(policyDefinition);
-                } else if (OperationPolicyDefinition.GatewayType.ChoreoConnect.equals(policyDefinition.getGatewayType())) {
+            List<APIPolicyTemplate> policyDefinitions = getPolicyDefinitionForPolicyId(connection, policyId);
+            for (APIPolicyTemplate policyDefinition : policyDefinitions) {
+                if (APIPolicyTemplate.GatewayType.Synapse.equals(policyDefinition.getGatewayType())) {
+                    policyData.setSynapsePolicyTemplate(policyDefinition);
+                } else if (APIPolicyTemplate.GatewayType.ChoreoConnect.equals(policyDefinition.getGatewayType())) {
                     policyData.setCcPolicyDefinition(policyDefinition);
                 }
             }
@@ -19333,7 +19295,7 @@ public class ApiMgtDAO {
 
 
     private void addOperationPolicyDefinition(Connection connection, String policyId,
-                                               OperationPolicyDefinition policyDefinition) throws SQLException {
+                                               APIPolicyTemplate policyDefinition) throws SQLException {
 
         String dbQuery = SQLConstants.OperationPolicyConstants.ADD_OPERATION_POLICY_DEFINITION;
         try (PreparedStatement statement = connection.prepareStatement(dbQuery)) {
@@ -19347,7 +19309,7 @@ public class ApiMgtDAO {
 
 
     private void updateOperationPolicyDefinition(Connection connection, String policyId,
-                                               OperationPolicyDefinition policyDefinition) throws SQLException {
+                                               APIPolicyTemplate policyDefinition) throws SQLException {
 
         String dbQuery = SQLConstants.OperationPolicyConstants.UPDATE_OPERATION_POLICY_DEFINITION;
         try (PreparedStatement statement = connection.prepareStatement(dbQuery)) {
@@ -19370,8 +19332,8 @@ public class ApiMgtDAO {
      * @return operation policy
      * @throws APIManagementException
      */
-    public OperationPolicyData getCommonOperationPolicyByPolicyID(String policyId, String organization,
-                                                                  boolean isWithPolicyDefinition)
+    public APIPolicyData getCommonOperationPolicyByPolicyID(String policyId, String organization,
+                                                            boolean isWithPolicyDefinition)
             throws APIManagementException {
 
         try (Connection connection = APIMgtDBUtil.getConnection()) {
@@ -19382,20 +19344,20 @@ public class ApiMgtDAO {
         return null;
     }
 
-    private OperationPolicyData getCommonOperationPolicyByPolicyID(Connection connection, String policyId,
-                                                                   String organization,
-                                                                   boolean isWithPolicyDefinition)
+    private APIPolicyData getCommonOperationPolicyByPolicyID(Connection connection, String policyId,
+                                                             String organization,
+                                                             boolean isWithPolicyDefinition)
             throws SQLException {
 
         String dbQuery =
                 SQLConstants.OperationPolicyConstants.GET_COMMON_OPERATION_POLICY_WITH_OUT_DEFINITION_FROM_POLICY_ID;
-        OperationPolicyData policyData = null;
+        APIPolicyData policyData = null;
         try (PreparedStatement statement = connection.prepareStatement(dbQuery)) {
             statement.setString(1, policyId);
             statement.setString(2, organization);
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
-                    policyData = new OperationPolicyData();
+                    policyData = new APIPolicyData();
                     policyData.setPolicyId(policyId);
                     policyData.setOrganization(organization);
                     policyData.setMd5Hash(rs.getString("POLICY_MD5"));
@@ -19421,8 +19383,8 @@ public class ApiMgtDAO {
      * @return operation policy
      * @throws APIManagementException
      */
-    public OperationPolicyData getCommonOperationPolicyByPolicyName(String policyName, String policyVersion,
-                                                                    String organization, boolean isWithPolicyDefinition)
+    public APIPolicyData getCommonOperationPolicyByPolicyName(String policyName, String policyVersion,
+                                                              String organization, boolean isWithPolicyDefinition)
             throws APIManagementException {
 
         try (Connection connection = APIMgtDBUtil.getConnection()) {
@@ -19435,22 +19397,22 @@ public class ApiMgtDAO {
         return null;
     }
 
-    private OperationPolicyData getCommonOperationPolicyByPolicyName(Connection connection, String policyName,
-                                                                     String policyVersion, String tenantDomain,
-                                                                     boolean isWithPolicyDefinition)
+    private APIPolicyData getCommonOperationPolicyByPolicyName(Connection connection, String policyName,
+                                                               String policyVersion, String tenantDomain,
+                                                               boolean isWithPolicyDefinition)
             throws SQLException {
 
         String dbQuery =
                 SQLConstants.OperationPolicyConstants.GET_COMMON_OPERATION_POLICY_FROM_POLICY_NAME;
 
-        OperationPolicyData policyData = null;
+        APIPolicyData policyData = null;
         try (PreparedStatement statement = connection.prepareStatement(dbQuery)) {
             statement.setString(1, policyName);
             statement.setString(2, policyVersion);
             statement.setString(3, tenantDomain);
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
-                    policyData = new OperationPolicyData();
+                    policyData = new APIPolicyData();
                     policyData.setOrganization(tenantDomain);
                     policyData.setPolicyId(rs.getString("POLICY_UUID"));
                     policyData.setMd5Hash(rs.getString("POLICY_MD5"));
@@ -19480,9 +19442,9 @@ public class ApiMgtDAO {
      * @return operation policy
      * @throws APIManagementException
      */
-    public OperationPolicyData getAPISpecificOperationPolicyByPolicyName(String policyName, String policyVersion,
-                                                                         String apiUUID, String revisionUUID,
-                                                                         String organization, boolean isWithPolicyDefinition)
+    public APIPolicyData getAPISpecificOperationPolicyByPolicyName(String policyName, String policyVersion,
+                                                                   String apiUUID, String revisionUUID,
+                                                                   String organization, boolean isWithPolicyDefinition)
             throws APIManagementException {
 
         try (Connection connection = APIMgtDBUtil.getConnection()) {
@@ -19495,11 +19457,11 @@ public class ApiMgtDAO {
         return null;
     }
 
-    private OperationPolicyData getAPISpecificOperationPolicyByPolicyName(Connection connection,
-                                                                          String policyName, String policyVersion,
-                                                                          String apiUUID, String revisionUUID,
-                                                                          String tenantDomain,
-                                                                          boolean isWithPolicyDefinition)
+    private APIPolicyData getAPISpecificOperationPolicyByPolicyName(Connection connection,
+                                                                    String policyName, String policyVersion,
+                                                                    String apiUUID, String revisionUUID,
+                                                                    String tenantDomain,
+                                                                    boolean isWithPolicyDefinition)
             throws SQLException {
 
         String dbQuery = SQLConstants.OperationPolicyConstants.GET_API_SPECIFIC_OPERATION_POLICY_FROM_POLICY_NAME;
@@ -19508,7 +19470,7 @@ public class ApiMgtDAO {
         } else {
             dbQuery += " AND AOP.REVISION_UUID IS NULL";
         }
-        OperationPolicyData policyData = null;
+        APIPolicyData policyData = null;
         try (PreparedStatement statement = connection.prepareStatement(dbQuery)) {
             statement.setString(1, policyName);
             statement.setString(2, policyVersion);
@@ -19519,7 +19481,7 @@ public class ApiMgtDAO {
             }
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
-                    policyData = new OperationPolicyData();
+                    policyData = new APIPolicyData();
                     policyData.setOrganization(tenantDomain);
                     policyData.setPolicyId(rs.getString("POLICY_UUID"));
                     policyData.setApiUUID(rs.getString("API_UUID"));
@@ -19550,8 +19512,8 @@ public class ApiMgtDAO {
      * @return List of Operation Policies
      * @throws APIManagementException
      */
-    public List<OperationPolicyData> getLightWeightVersionOfAllOperationPolicies(String apiUUID,
-                                                                                 String organization)
+    public List<APIPolicyData> getLightWeightVersionOfAllOperationPolicies(String apiUUID,
+                                                                           String organization)
             throws APIManagementException {
 
         String dbQuery;
@@ -19561,7 +19523,7 @@ public class ApiMgtDAO {
         } else {
             dbQuery = SQLConstants.OperationPolicyConstants.GET_ALL_COMMON_OPERATION_POLICIES;
         }
-        List<OperationPolicyData> policyDataList = new ArrayList<>();
+        List<APIPolicyData> policyDataList = new ArrayList<>();
         try (Connection connection = APIMgtDBUtil.getConnection();
              PreparedStatement statement = connection.prepareStatement(dbQuery)) {
             statement.setString(1, organization);
@@ -19570,7 +19532,7 @@ public class ApiMgtDAO {
             }
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
-                    OperationPolicyData policyData = new OperationPolicyData();
+                    APIPolicyData policyData = new APIPolicyData();
                     policyData.setOrganization(organization);
                     policyData.setPolicyId(rs.getString("POLICY_UUID"));
                     policyData.setMd5Hash(rs.getString("POLICY_MD5"));
@@ -19729,9 +19691,9 @@ public class ApiMgtDAO {
      * @throws APIManagementException
      * @throws SQLException
      */
-    private OperationPolicy populateOperationPolicyWithRS(ResultSet rs) throws SQLException, APIManagementException {
+    private Policy populateOperationPolicyWithRS(ResultSet rs) throws SQLException, APIManagementException {
 
-        OperationPolicy operationPolicy = new OperationPolicy();
+        Policy operationPolicy = new Policy();
         operationPolicy.setPolicyName(rs.getString("POLICY_NAME"));
         operationPolicy.setPolicyVersion(rs.getString("POLICY_VERSION"));
         operationPolicy.setPolicyId(rs.getString("POLICY_UUID"));
@@ -19749,9 +19711,9 @@ public class ApiMgtDAO {
      * @throws APIManagementException
      * @throws SQLException
      */
-    private OperationPolicySpecification populatePolicySpecificationFromRS(ResultSet rs) throws SQLException {
+    private APIPolicySpecification populatePolicySpecificationFromRS(ResultSet rs) throws SQLException {
 
-        OperationPolicySpecification policySpecification = new OperationPolicySpecification();
+        APIPolicySpecification policySpecification = new APIPolicySpecification();
         policySpecification.setName(rs.getString("POLICY_NAME"));
         policySpecification.setVersion(rs.getString("POLICY_VERSION"));
         policySpecification.setDisplayName(rs.getString("DISPLAY_NAME"));
@@ -19759,14 +19721,14 @@ public class ApiMgtDAO {
         policySpecification.setApplicableFlows(getListFromString(rs.getString("APPLICABLE_FLOWS")));
         policySpecification.setSupportedApiTypes(getListFromString(rs.getString("API_TYPES")));
         policySpecification.setSupportedGateways(getListFromString(rs.getString("GATEWAY_TYPES")));
-        policySpecification.setCategory(OperationPolicySpecification.PolicyCategory
+        policySpecification.setCategory(APIPolicySpecification.PolicyCategory
                 .valueOf(rs.getString("POLICY_CATEGORY")));
-        List<OperationPolicySpecAttribute> policySpecAttributes = null;
+        List<APIPolicySpecAttribute> policySpecAttributes = null;
 
         try (InputStream policyParametersStream = rs.getBinaryStream("POLICY_PARAMETERS")) {
             String policyParametersString = IOUtils.toString(policyParametersStream);
             policySpecAttributes = new Gson().fromJson(policyParametersString,
-                    new TypeToken<List<OperationPolicySpecAttribute>>() {
+                    new TypeToken<List<APIPolicySpecAttribute>>() {
                     }.getType());
         } catch (IOException e) {
             log.error("Error while converting policy specification attributes for the policy "
@@ -19793,4 +19755,142 @@ public class ApiMgtDAO {
         return list;
     }
 
+    public void addAPIPoliciesMapping(List<Policy> policies, String apiUUID, String revisionUUID,
+                                      String tenantDomain) throws APIManagementException {
+        try (Connection connection = APIMgtDBUtil.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                addAPIPoliciesMapping(policies, apiUUID, revisionUUID, tenantDomain, connection);
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                handleException("Error while adding API policy mapping for : " + apiUUID, e);
+            }
+        } catch (SQLException e) {
+            handleException("Error while adding API policy mapping for : " + apiUUID, e);
+        }
+    }
+
+    public void addAPIPoliciesMapping(List<Policy> policies, String apiUUID, String revisionUUID,
+                                      String tenantDomain, Connection connection) {
+        Map<String, String> updatedPoliciesMap = new HashMap<>();
+        Set<String> usedClonedPolicies = new HashSet<String>();
+        List<ClonePolicyMetadataDTO> toBeClonedPolicyDetails = new ArrayList<>();
+        String dbQuery = SQLConstants.OperationPolicyConstants.ADD_API_POLICY_MAPPING;
+        try (PreparedStatement statement = connection.prepareStatement(dbQuery)) {
+            for (Policy policy : policies) {
+                if (!updatedPoliciesMap.keySet().contains(policy.getPolicyId())) {
+                    //Check whether API Specific policies available
+                    APIPolicyData existingPolicy =
+                            getAPISpecificOperationPolicyByPolicyID(connection, policy.getPolicyId(),
+                                    apiUUID, tenantDomain, false);
+                    String clonedPolicyId = policy.getPolicyId();
+                    if (existingPolicy != null) {
+                        if (existingPolicy.isClonedPolicy()) {
+                            usedClonedPolicies.add(clonedPolicyId);
+                        }
+                    } else {
+                        // Even though the policy ID attached is not in the API specific policy list,
+                        // it can be a common policy and we need to verify that it has not been previously cloned
+                        // for the API before cloning again.
+                        clonedPolicyId = getClonedPolicyIdForCommonPolicyId(connection,
+                                policy.getPolicyId(), apiUUID);
+                        if (clonedPolicyId == null) {
+                            clonedPolicyId = UUID.randomUUID().toString();
+                            ClonePolicyMetadataDTO toBeClonedSinglePolicyData = new ClonePolicyMetadataDTO();
+                            toBeClonedSinglePolicyData.setClonedPolicyUUID(clonedPolicyId);
+                            toBeClonedSinglePolicyData.setCurrentPolicyUUID(policy.getPolicyId());
+                            toBeClonedPolicyDetails.add(toBeClonedSinglePolicyData);
+                        }
+                        usedClonedPolicies.add(clonedPolicyId);
+                        //usedClonedPolicies set will not contain used API specific policies that are not cloned.
+                    }
+
+                    // Updated policies map will record the updated policy ID for the used policy ID.
+                    // If the policy has been cloned to the API specific policy list, we need to use the
+                    // updated policy Id.
+                    updatedPoliciesMap.put(policy.getPolicyId(), clonedPolicyId);
+                }
+
+                Gson gson = new Gson();
+                String paramJSON = gson.toJson(policy.getParameters());
+
+                statement.setString(1, apiUUID);
+                statement.setString(2, revisionUUID);
+                statement.setString(3, updatedPoliciesMap.get(policy.getPolicyId()));
+                statement.setString(4, policy.getDirection());
+                statement.setString(5, paramJSON);
+                statement.setInt(6, policy.getOrder());
+                statement.addBatch();
+            }
+            for (ClonePolicyMetadataDTO toBeClonedPolicyData : toBeClonedPolicyDetails) {
+                cloneCommonPolicyToAPI(connection, toBeClonedPolicyData.getCurrentPolicyUUID(),
+                        toBeClonedPolicyData.getClonedPolicyUUID(), apiUUID);
+            }
+            statement.executeBatch();
+            cleanUnusedClonedOperationPolicies(connection, usedClonedPolicies, apiUUID);
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } catch (APIManagementException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public void updateAPIPoliciesMapping(API api, String tenantDomain) throws APIManagementException {
+        String deleteOldMappingsQuery = SQLConstants.OperationPolicyConstants.DELETE_API_POLICY_MAPPING;
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement prepStmt = connection.prepareStatement(deleteOldMappingsQuery)) {
+            connection.setAutoCommit(false);
+            prepStmt.setString(1, api.getUuid());
+            prepStmt.execute();
+            if (api.getApiPolicies() != null && !api.getApiPolicies().isEmpty()) {
+                addAPIPoliciesMapping(api.getApiPolicies(), api.getUuid(), null, tenantDomain, connection);
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            handleException("Error while updating api policies for API : " + api.getUuid(), e);
+        }
+    }
+
+    /**
+     * Sets operation policies to uriTemplates map
+     *
+     * @param uuid         UUID of API or API Revision
+     * @param uriTemplates URI Templates map with 'URL_PATTERN + HTTP_METHOD' as the map key
+     * @throws SQLException
+     * @throws APIManagementException
+     */
+    public List<Policy> getAPIPolicyMapping(String uuid) throws APIManagementException {
+
+        String currentApiUuid;
+        String query;
+        boolean isRevision = false;
+        APIRevision apiRevision = checkAPIUUIDIsARevisionUUID(uuid);
+        List<Policy> policyList = new ArrayList<>();
+        if (apiRevision != null && apiRevision.getApiUUID() != null) {
+            currentApiUuid = apiRevision.getApiUUID();
+            query = SQLConstants.OperationPolicyConstants.GET_API_POLICIES_FOR_API_REVISION_SQL;
+            isRevision = true;
+        } else {
+            query = SQLConstants.OperationPolicyConstants.GET_API_POLICIES_OF_API_SQL;
+            currentApiUuid = uuid;
+        }
+
+        try (Connection connection = APIMgtDBUtil.getConnection();
+                PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, currentApiUuid);
+            if (isRevision) {
+                ps.setString(2, uuid);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Policy operationPolicy = populateOperationPolicyWithRS(rs);
+                    policyList.add(operationPolicy);
+                }
+            }
+        } catch (SQLException e) {
+            throw new APIManagementException(e);
+        }
+        return policyList;
+    }
 }

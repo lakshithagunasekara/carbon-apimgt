@@ -32,8 +32,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.APIProvider;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyData;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyDefinition;
+import org.wso2.carbon.apimgt.api.model.APIPolicyData;
+import org.wso2.carbon.apimgt.api.model.APIPolicyTemplate;
 import org.wso2.carbon.apimgt.impl.importexport.utils.CommonUtil;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.OperationPolicyDataDTO;
@@ -45,7 +45,7 @@ public class ImportUtilsTest {
     private static final String ORGANIZATION = "carbon.super";
     private static final String POLICYNAME = "customCommonLogPolicy";
     private static final String POLICYVERSION = "v1";
-    private static OperationPolicyData policyData;
+    private static APIPolicyData policyData;
     private final String pathToArchive = "/tmp/test/customCommonLogPolicy";
     private final String yamlFile = pathToArchive + "/customCommonLogPolicy.yaml";
     private final String jsonFile = pathToArchive + "/customCommonLogPolicy.json";
@@ -60,7 +60,7 @@ public class ImportUtilsTest {
                         String.class,
                                 String.class));
         apiProvider = Mockito.mock(APIProvider.class);
-        policyData = Mockito.mock(OperationPolicyData.class);
+        policyData = Mockito.mock(APIPolicyData.class);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class ImportUtilsTest {
         Mockito.when(apiProvider.getCommonOperationPolicyByPolicyName(POLICYNAME, POLICYVERSION, ORGANIZATION, false))
                 .thenReturn(null);
 
-        OperationPolicyDefinition gatewayDefinition = Mockito.mock(OperationPolicyDefinition.class);
+        APIPolicyTemplate gatewayDefinition = Mockito.mock(APIPolicyTemplate.class);
 
         PowerMockito.stub(
                 PowerMockito.method(APIUtil.class, "getOperationPolicyDefinitionFromFile", String.class,
@@ -89,12 +89,12 @@ public class ImportUtilsTest {
         String md5Hash = RandomStringUtils.randomAlphanumeric(30);
 
         PowerMockito.stub(
-                PowerMockito.method(APIUtil.class, "getMd5OfOperationPolicy", OperationPolicyData.class)).
+                PowerMockito.method(APIUtil.class, "getMd5OfOperationPolicy", APIPolicyData.class)).
                 toReturn(md5Hash);
 
         String policyId = RandomStringUtils.randomAlphanumeric(10);
 
-        Mockito.when(apiProvider.addCommonOperationPolicy(ArgumentMatchers.any(OperationPolicyData.class),
+        Mockito.when(apiProvider.addCommonOperationPolicy(ArgumentMatchers.any(APIPolicyData.class),
                 ArgumentMatchers.eq(ORGANIZATION))).thenReturn(policyId);
 
         try {

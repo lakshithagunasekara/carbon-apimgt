@@ -43,6 +43,7 @@ import org.wso2.carbon.apimgt.api.dto.CertificateMetadataDTO;
 import org.wso2.carbon.apimgt.api.dto.ClientCertificateDTO;
 import org.wso2.carbon.apimgt.api.model.API;
 import org.wso2.carbon.apimgt.api.model.APIIdentifier;
+import org.wso2.carbon.apimgt.api.model.APIPolicyData;
 import org.wso2.carbon.apimgt.api.model.APIProductIdentifier;
 import org.wso2.carbon.apimgt.api.model.APIRevision;
 import org.wso2.carbon.apimgt.api.model.APIRevisionDeployment;
@@ -50,8 +51,7 @@ import org.wso2.carbon.apimgt.api.model.Documentation;
 import org.wso2.carbon.apimgt.api.model.DocumentationContent;
 import org.wso2.carbon.apimgt.api.model.Identifier;
 import org.wso2.carbon.apimgt.api.model.Mediation;
-import org.wso2.carbon.apimgt.api.model.OperationPolicy;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyData;
+import org.wso2.carbon.apimgt.api.model.Policy;
 import org.wso2.carbon.apimgt.api.model.ResourceFile;
 import org.wso2.carbon.apimgt.api.model.URITemplate;
 import org.wso2.carbon.apimgt.api.model.graphql.queryanalysis.GraphqlComplexityInfo;
@@ -643,14 +643,14 @@ public class ExportUtils {
             Set<String> exportedPolicies = new HashSet<>();
             boolean mediationPoliciesLoaded = false;
             for (URITemplate uriTemplate : uriTemplates) {
-                List<OperationPolicy> operationPolicies = uriTemplate.getOperationPolicies();
+                List<Policy> operationPolicies = uriTemplate.getOperationPolicies();
                 if (operationPolicies != null && !operationPolicies.isEmpty()) {
-                    for (OperationPolicy policy : operationPolicies) {
+                    for (Policy policy : operationPolicies) {
                         if (!exportedPolicies.contains(policy.getPolicyName() + "_" + policy.getPolicyVersion())) {
                             String policyFileName = APIUtil.getOperationPolicyFileName(policy.getPolicyName(),
                                     policy.getPolicyVersion());
                             if (policy.getPolicyId() != null) {
-                                OperationPolicyData policyData =
+                                APIPolicyData policyData =
                                         apiProvider.getAPISpecificOperationPolicyByPolicyId(policy.getPolicyId(),
                                                 currentApiUuid, tenantDomain, true);
                                 if (policyData != null) {
@@ -669,7 +669,7 @@ public class ExportUtils {
                                         mediationPoliciesLoaded = true;
                                     }
 
-                                    OperationPolicyData policyData = APIUtil.getPolicyDataForMediationFlow(api,
+                                    APIPolicyData policyData = APIUtil.getPolicyDataForMediationFlow(api,
                                             policy.getDirection(), tenantDomain);
                                     if (policyData != null) {
                                         exportPolicyData(policyFileName, policyData, archivePath, exportFormat);
@@ -697,7 +697,7 @@ public class ExportUtils {
         }
     }
 
-    public static void exportPolicyData(String policyFileName, OperationPolicyData policyData, String archivePath,
+    public static void exportPolicyData(String policyFileName, APIPolicyData policyData, String archivePath,
                                         ExportFormat exportFormat) throws APIImportExportException, IOException {
 
         String policyName = archivePath + File.separator + ImportExportConstants.POLICIES_DIRECTORY + File.separator +
@@ -707,9 +707,9 @@ public class ExportUtils {
             CommonUtil.writeDtoToFile(policyName, exportFormat, ImportExportConstants.TYPE_POLICY_SPECIFICATION,
                     policyData.getSpecification());
         }
-        if (policyData.getSynapsePolicyDefinition() != null) {
+        if (policyData.getSynapsePolicyTemplate() != null) {
             CommonUtil.writeFile(policyName + APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION,
-                    policyData.getSynapsePolicyDefinition().getContent());
+                    policyData.getSynapsePolicyTemplate().getContent());
         }
         if (policyData.getCcPolicyDefinition() != null) {
             CommonUtil.writeFile(policyName + APIConstants.CC_POLICY_DEFINITION_EXTENSION,

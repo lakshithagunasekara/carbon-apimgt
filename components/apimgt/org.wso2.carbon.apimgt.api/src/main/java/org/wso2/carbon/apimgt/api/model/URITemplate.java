@@ -48,7 +48,7 @@ public class URITemplate implements Serializable{
     private Set<APIProductIdentifier> usedByProducts = new HashSet<>();
     private String amznResourceName;
     private int amznResourceTimeout;
-    private List<OperationPolicy> operationPolicies = new ArrayList<>();
+    private List<Policy> operationPolicies = new ArrayList<>();
 
     public ConditionGroupDTO[] getConditionGroups() {
         return conditionGroups;
@@ -437,15 +437,15 @@ public class URITemplate implements Serializable{
         return amznResourceTimeout;
     }
 
-    public void setOperationPolicies(List<OperationPolicy> operationPolicies) {
+    public void setOperationPolicies(List<Policy> operationPolicies) {
         this.operationPolicies = operationPolicies;
     }
 
-    public List<OperationPolicy> getOperationPolicies() {
+    public List<Policy> getOperationPolicies() {
         return operationPolicies;
     }
 
-    public void addOperationPolicy(OperationPolicy policy) {
+    public void addOperationPolicy(Policy policy) {
         operationPolicies.add(policy);
     }
 }

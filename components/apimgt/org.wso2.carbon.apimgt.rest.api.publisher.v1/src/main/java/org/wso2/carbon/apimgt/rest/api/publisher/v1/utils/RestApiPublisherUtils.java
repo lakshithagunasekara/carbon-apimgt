@@ -27,8 +27,8 @@ import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.ContentDisposition;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.APIProvider;
+import org.wso2.carbon.apimgt.api.model.APIPolicyData;
 import org.wso2.carbon.apimgt.api.model.Documentation;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyData;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.importexport.APIImportExportException;
 import org.wso2.carbon.apimgt.impl.importexport.ExportFormat;
@@ -264,7 +264,7 @@ public class RestApiPublisherUtils {
         return fileContentType;
     }
 
-    public static File exportOperationPolicyData(OperationPolicyData policyData, String format)
+    public static File exportOperationPolicyData(APIPolicyData policyData, String format)
             throws APIManagementException {
 
         File exportFolder = null;
@@ -287,9 +287,9 @@ public class RestApiPublisherUtils {
                             policyData.getSpecification());
                 }
             }
-            if (policyData.getSynapsePolicyDefinition() != null) {
+            if (policyData.getSynapsePolicyTemplate() != null) {
                 CommonUtil.writeFile(policyName + APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION,
-                        policyData.getSynapsePolicyDefinition().getContent());
+                        policyData.getSynapsePolicyTemplate().getContent());
             }
             if (policyData.getCcPolicyDefinition() != null) {
                 CommonUtil.writeFile(policyName + APIConstants.CC_POLICY_DEFINITION_EXTENSION,

@@ -25,10 +25,8 @@ import org.wso2.carbon.apimgt.api.dto.ClientCertificateDTO;
 import org.wso2.carbon.apimgt.api.dto.EnvironmentPropertiesDTO;
 import org.wso2.carbon.apimgt.api.dto.UserApplicationAPIUsage;
 import org.wso2.carbon.apimgt.api.model.*;
-import org.wso2.carbon.apimgt.api.model.policy.APIPolicy;
 import org.wso2.carbon.apimgt.api.model.policy.ApplicationPolicy;
 import org.wso2.carbon.apimgt.api.model.policy.GlobalPolicy;
-import org.wso2.carbon.apimgt.api.model.policy.Policy;
 import org.wso2.carbon.apimgt.api.model.policy.SubscriptionPolicy;
 
 import java.io.ByteArrayInputStream;
@@ -189,7 +187,7 @@ public interface APIProvider extends APIManager {
      */
     Map getSubscriberClaims(String subscriber) throws APIManagementException;
 
-    void addPolicy(Policy policy) throws APIManagementException;
+    void addPolicy(org.wso2.carbon.apimgt.api.model.policy.Policy policy) throws APIManagementException;
 
     /**
      * Deletes a subscription block condition when the condition key is given
@@ -215,14 +213,14 @@ public interface APIProvider extends APIManager {
      * @param policyName name of the policy
      * @throws APIManagementException
      */
-    APIPolicy getAPIPolicy(String username, String policyName) throws APIManagementException;
+    org.wso2.carbon.apimgt.api.model.policy.APIPolicy getAPIPolicy(String username, String policyName) throws APIManagementException;
 
     /**
      * Get api throttling policy by uuid
      * @param uuid UUID of the policy
      * @throws APIManagementException
      */
-    APIPolicy getAPIPolicyByUUID(String uuid) throws APIManagementException;
+    org.wso2.carbon.apimgt.api.model.policy.APIPolicy getAPIPolicyByUUID(String uuid) throws APIManagementException;
 
 
     /**
@@ -287,10 +285,10 @@ public interface APIProvider extends APIManager {
      * successfull or not.
      * </p>
      *
-     * @param policy updated {@link Policy} object
+     * @param policy updated {@link org.wso2.carbon.apimgt.api.model.policy.Policy} object
      * @throws APIManagementException
      */
-    void updatePolicy(Policy policy) throws APIManagementException;
+    void updatePolicy(org.wso2.carbon.apimgt.api.model.policy.Policy policy) throws APIManagementException;
 
     /**
      * Adds a new API to the Store
@@ -1464,7 +1462,7 @@ public interface APIProvider extends APIManager {
      * @return UUID of the imported operation policy
      * @throws APIManagementException
      */
-    String importOperationPolicy(OperationPolicyData operationPolicyData, String organization)
+    String importOperationPolicy(APIPolicyData operationPolicyData, String organization)
             throws APIManagementException;
 
     /**
@@ -1476,7 +1474,7 @@ public interface APIProvider extends APIManager {
      * @return status of the policy storage
      * @throws APIManagementException
      */
-    String addAPISpecificOperationPolicy(String apiUUID, OperationPolicyData operationPolicyData,
+    String addAPISpecificOperationPolicy(String apiUUID, APIPolicyData operationPolicyData,
                                          String organization)
             throws APIManagementException;
 
@@ -1488,7 +1486,7 @@ public interface APIProvider extends APIManager {
      * @return status of the policy storage
      * @throws APIManagementException
      */
-    String addCommonOperationPolicy(OperationPolicyData operationPolicyData, String organization)
+    String addCommonOperationPolicy(APIPolicyData operationPolicyData, String organization)
             throws APIManagementException;
 
     /**
@@ -1508,10 +1506,10 @@ public interface APIProvider extends APIManager {
      * @return Operation Policy
      * @throws APIManagementException
      */
-    OperationPolicyData getAPISpecificOperationPolicyByPolicyName(String policyName, String policyVersion, String apiUUID,
-                                                                  String revisionUUID,
-                                                                  String organization,
-                                                                  boolean isWithPolicyDefinition)
+    APIPolicyData getAPISpecificOperationPolicyByPolicyName(String policyName, String policyVersion, String apiUUID,
+                                                            String revisionUUID,
+                                                            String organization,
+                                                            boolean isWithPolicyDefinition)
             throws APIManagementException;
 
     /**
@@ -1526,8 +1524,8 @@ public interface APIProvider extends APIManager {
      * @return Common Operation Policy
      * @throws APIManagementException
      */
-    OperationPolicyData getCommonOperationPolicyByPolicyName(String policyName, String policyVersion, String organization,
-                                                             boolean isWithPolicyDefinition)
+    APIPolicyData getCommonOperationPolicyByPolicyName(String policyName, String policyVersion, String organization,
+                                                       boolean isWithPolicyDefinition)
             throws APIManagementException;
 
     /**
@@ -1542,9 +1540,9 @@ public interface APIProvider extends APIManager {
      * @return Operation Policy
      * @throws APIManagementException
      */
-    OperationPolicyData getAPISpecificOperationPolicyByPolicyId(String policyId, String apiUUID,
-                                                                String organization,
-                                                                boolean isWithPolicyDefinition)
+    APIPolicyData getAPISpecificOperationPolicyByPolicyId(String policyId, String apiUUID,
+                                                          String organization,
+                                                          boolean isWithPolicyDefinition)
             throws APIManagementException;
 
     /**
@@ -1558,8 +1556,8 @@ public interface APIProvider extends APIManager {
      * @return Operation Policy
      * @throws APIManagementException
      */
-    OperationPolicyData getCommonOperationPolicyByPolicyId(String policyId, String organization,
-                                                           boolean isWithPolicyDefinition)
+    APIPolicyData getCommonOperationPolicyByPolicyId(String policyId, String organization,
+                                                     boolean isWithPolicyDefinition)
             throws APIManagementException;
 
     /**
@@ -1571,7 +1569,7 @@ public interface APIProvider extends APIManager {
      * @return status of the policy update
      * @throws APIManagementException
      */
-    void updateOperationPolicy(String operationPolicyId, OperationPolicyData operationPolicyData,
+    void updateOperationPolicy(String operationPolicyId, APIPolicyData operationPolicyData,
                                String organization) throws APIManagementException;
 
     /**
@@ -1582,7 +1580,7 @@ public interface APIProvider extends APIManager {
      * @return List of Operation Policies
      * @throws APIManagementException
      */
-    List<OperationPolicyData> getAllCommonOperationPolicies(String organization)
+    List<APIPolicyData> getAllCommonOperationPolicies(String organization)
             throws APIManagementException;
 
     /**
@@ -1594,7 +1592,7 @@ public interface APIProvider extends APIManager {
      * @return List of Operation Policies
      * @throws APIManagementException
      */
-    List<OperationPolicyData> getAllAPISpecificOperationPolicies(String apiUUID, String organization)
+    List<APIPolicyData> getAllAPISpecificOperationPolicies(String apiUUID, String organization)
             throws APIManagementException;
 
     /**
@@ -1692,6 +1690,6 @@ public interface APIProvider extends APIManager {
      * @return validation status
      * @throws APIManagementException
      */
-    boolean validateAppliedPolicyWithSpecification(OperationPolicySpecification policySpecification, OperationPolicy
+    boolean validateAppliedPolicyWithSpecification(APIPolicySpecification policySpecification, Policy
             appliedPolicy, String apiType) throws APIManagementException;
 }

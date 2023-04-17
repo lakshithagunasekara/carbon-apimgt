@@ -69,6 +69,7 @@ public interface ApisApiService {
       public Response addAPIDocumentContent(String apiId, String documentId, String ifMatch, InputStream fileInputStream, Attachment fileDetail, String inlineContent, MessageContext messageContext) throws APIManagementException;
       public Response addAPIMonetization(String apiId, APIMonetizationInfoDTO apIMonetizationInfoDTO, MessageContext messageContext) throws APIManagementException;
       public Response addAPISpecificOperationPolicy(String apiId, InputStream policySpecFileInputStream, Attachment policySpecFileDetail, InputStream synapsePolicyDefinitionFileInputStream, Attachment synapsePolicyDefinitionFileDetail, InputStream ccPolicyDefinitionFileInputStream, Attachment ccPolicyDefinitionFileDetail, MessageContext messageContext) throws APIManagementException;
+      public Response addAPISpecificPolicy(String apiId, InputStream policyDefinitionFileInputStream, Attachment policyDefinitionFileDetail, InputStream synapsePolicyTemplateFileInputStream, Attachment synapsePolicyTemplateFileDetail, InputStream ccPolicyTemplateFileInputStream, Attachment ccPolicyTemplateFileDetail, MessageContext messageContext) throws APIManagementException;
       public Response addCommentToAPI(String apiId, PostRequestBodyDTO postRequestBodyDTO, String replyTo, MessageContext messageContext) throws APIManagementException;
       public Response apisApiIdAsyncapiGet(String apiId, String ifNoneMatch, MessageContext messageContext) throws APIManagementException;
       public Response apisApiIdAsyncapiPut(String apiId, String ifMatch, String apiDefinition, String url, InputStream fileInputStream, Attachment fileDetail, MessageContext messageContext) throws APIManagementException;
@@ -84,6 +85,7 @@ public interface ApisApiService {
       public Response deleteAPILifecycleStatePendingTasks(String apiId, MessageContext messageContext) throws APIManagementException;
       public Response deleteAPIRevision(String apiId, String revisionId, MessageContext messageContext) throws APIManagementException;
       public Response deleteAPISpecificOperationPolicyByPolicyId(String apiId, String operationPolicyId, MessageContext messageContext) throws APIManagementException;
+      public Response deleteAPISpecificPolicyByPolicyId(String apiId, String policyId, MessageContext messageContext) throws APIManagementException;
       public Response deleteComment(String commentId, String apiId, String ifMatch, MessageContext messageContext) throws APIManagementException;
       public Response deployAPIRevision(String apiId, String revisionId, List<APIRevisionDeploymentDTO> apIRevisionDeploymentDTO, MessageContext messageContext) throws APIManagementException;
       public Response editCommentOfAPI(String commentId, String apiId, PatchRequestBodyDTO patchRequestBodyDTO, MessageContext messageContext) throws APIManagementException;
@@ -109,10 +111,12 @@ public interface ApisApiService {
       public Response getAPIRevisionDeployments(String apiId, MessageContext messageContext) throws APIManagementException;
       public Response getAPIRevisions(String apiId, String query, MessageContext messageContext) throws APIManagementException;
       public Response getAPISpecificOperationPolicyContentByPolicyId(String apiId, String operationPolicyId, MessageContext messageContext) throws APIManagementException;
+      public Response getAPISpecificPolicyContentByPolicyId(String apiId, String policyId, MessageContext messageContext) throws APIManagementException;
       public Response getAPISubscriptionPolicies(String apiId, String xWSO2Tenant, String ifNoneMatch, MessageContext messageContext) throws APIManagementException;
       public Response getAPISwagger(String apiId, String ifNoneMatch, MessageContext messageContext) throws APIManagementException;
       public Response getAPIThumbnail(String apiId, String ifNoneMatch, MessageContext messageContext) throws APIManagementException;
       public Response getAllAPISpecificOperationPolicies(String apiId, Integer limit, Integer offset, String query, MessageContext messageContext) throws APIManagementException;
+      public Response getAllAPISpecificPolicies(String apiId, Integer limit, Integer offset, String query, MessageContext messageContext) throws APIManagementException;
       public Response getAllAPIs(Integer limit, Integer offset, String sortBy, String sortOrder, String xWSO2Tenant, String query, String ifNoneMatch, String accept, MessageContext messageContext) throws APIManagementException;
       public Response getAllCommentsOfAPI(String apiId, String xWSO2Tenant, Integer limit, Integer offset, Boolean includeCommenterInfo, MessageContext messageContext) throws APIManagementException;
       public Response getAllPublishedExternalStoresByAPI(String apiId, String ifNoneMatch, MessageContext messageContext) throws APIManagementException;
@@ -123,6 +127,7 @@ public interface ApisApiService {
       public Response getGraphQLPolicyComplexityOfAPI(String apiId, MessageContext messageContext) throws APIManagementException;
       public Response getGraphQLPolicyComplexityTypesOfAPI(String apiId, MessageContext messageContext) throws APIManagementException;
       public Response getOperationPolicyForAPIByPolicyId(String apiId, String operationPolicyId, MessageContext messageContext) throws APIManagementException;
+      public Response getPolicyForAPIByPolicyId(String apiId, String policyId, MessageContext messageContext) throws APIManagementException;
       public Response getRepliesOfComment(String commentId, String apiId, String xWSO2Tenant, Integer limit, Integer offset, String ifNoneMatch, Boolean includeCommenterInfo, MessageContext messageContext) throws APIManagementException;
       public Response getWSDLInfoOfAPI(String apiId, MessageContext messageContext) throws APIManagementException;
       public Response getWSDLOfAPI(String apiId, String ifNoneMatch, MessageContext messageContext) throws APIManagementException;

@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class OperationPolicySpecAttribute {
+public class APIPolicySpecAttribute {
 
     public enum AttributeType {
         String,
@@ -127,9 +127,9 @@ public class OperationPolicySpecAttribute {
 
         if (this == o)
             return true;
-        if (!(o instanceof OperationPolicySpecAttribute))
+        if (!(o instanceof APIPolicySpecAttribute))
             return false;
-        OperationPolicySpecAttribute policySpecAttributeObj = (OperationPolicySpecAttribute) o;
+        APIPolicySpecAttribute policySpecAttributeObj = (APIPolicySpecAttribute) o;
         return required == policySpecAttributeObj.required && name.equals(policySpecAttributeObj.name)
                 && Objects.equals(displayName, policySpecAttributeObj.displayName) && Objects.equals(description,
                 policySpecAttributeObj.description) && Objects.equals(validationRegex,

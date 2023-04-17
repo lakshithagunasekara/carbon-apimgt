@@ -50,7 +50,7 @@ import org.wso2.carbon.apimgt.api.model.APIStateChangeResponse;
 import org.wso2.carbon.apimgt.api.model.CORSConfiguration;
 import org.wso2.carbon.apimgt.api.model.LifeCycleEvent;
 import org.wso2.carbon.apimgt.api.model.Mediation;
-import org.wso2.carbon.apimgt.api.model.OperationPolicy;
+import org.wso2.carbon.apimgt.api.model.Policy;
 import org.wso2.carbon.apimgt.api.model.ResourcePath;
 import org.wso2.carbon.apimgt.api.model.Scope;
 import org.wso2.carbon.apimgt.api.model.ServiceEntry;
@@ -265,6 +265,13 @@ public class APIMappingUtil {
         // No default topics for AsyncAPIs. Therefore set URITemplates only for non-AsyncAPIs.
         Set<URITemplate> uriTemplates = getURITemplates(model, dto.getOperations());
         model.setUriTemplates(uriTemplates);
+
+        if (dto.getApiPolicies() != null) {
+            List<Policy> policyList = OperationPolicyMappingUtil
+                    .fromDTOToAPIOperationPoliciesList(dto.getApiPolicies());
+            //Handle if both are set
+            model.setApiPolicies(policyList);
+        }
 
         // wsUriMapping
         if (dto.getType().toString().equals(APIConstants.API_TYPE_WS)) {
@@ -1139,6 +1146,10 @@ public class APIMappingUtil {
 
         dto.setMediationPolicies(mediationPolicies);
         dto.setLifeCycleStatus(model.getStatus());
+
+        if (model.getApiPolicies() != null) {
+            dto.setApiPolicies(OperationPolicyMappingUtil.fromOperationPolicyListToDTO(model.getApiPolicies()));
+        }
 
         String subscriptionAvailability = model.getSubscriptionAvailability();
         if (subscriptionAvailability != null) {
@@ -2149,7 +2160,7 @@ public class APIMappingUtil {
         for (APIOperationsDTO operationsDTO : apiOperationsDTO) {
             String key = operationsDTO.getTarget() + ":" + operationsDTO.getVerb();
             if (uriTemplateMap.get(key) != null) {
-                List<OperationPolicy> operationPolicies = uriTemplateMap.get(key).getOperationPolicies();
+                List<Policy> operationPolicies = uriTemplateMap.get(key).getOperationPolicies();
                 if (!operationPolicies.isEmpty()) {
                     operationsDTO.setOperationPolicies(
                             OperationPolicyMappingUtil.fromOperationPolicyListToDTO(operationPolicies));

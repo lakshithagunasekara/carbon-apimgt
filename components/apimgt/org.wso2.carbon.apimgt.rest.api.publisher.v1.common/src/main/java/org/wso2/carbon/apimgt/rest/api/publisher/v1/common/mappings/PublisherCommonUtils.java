@@ -56,7 +56,7 @@ import org.wso2.carbon.apimgt.api.model.Documentation;
 import org.wso2.carbon.apimgt.api.model.DocumentationContent;
 import org.wso2.carbon.apimgt.api.model.Identifier;
 import org.wso2.carbon.apimgt.api.model.LifeCycleEvent;
-import org.wso2.carbon.apimgt.api.model.OperationPolicy;
+import org.wso2.carbon.apimgt.api.model.Policy;
 import org.wso2.carbon.apimgt.api.model.ResourceFile;
 import org.wso2.carbon.apimgt.api.model.SOAPToRestSequence;
 import org.wso2.carbon.apimgt.api.model.ServiceEntry;
@@ -315,7 +315,7 @@ public class PublisherCommonUtils {
 
                 //set operation policies from the original API Payload
                 Set<URITemplate> uriTemplatesFromPayload = apiToUpdate.getUriTemplates();
-                Map<String, List<OperationPolicy>> operationPoliciesPerURITemplate = new HashMap<>();
+                Map<String, List<Policy>> operationPoliciesPerURITemplate = new HashMap<>();
                 for (URITemplate uriTemplate : uriTemplatesFromPayload) {
                     if (!uriTemplate.getOperationPolicies().isEmpty()) {
                         String key = uriTemplate.getHTTPVerb() + ":" + uriTemplate.getUriTemplate();

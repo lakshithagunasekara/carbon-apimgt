@@ -1909,9 +1909,9 @@ public class ApisApiServiceImpl implements ApisApiService {
             //validate if api exists
             CommonUtils.validateAPIExistence(apiId);
             String jsonContent = "";
-            OperationPolicyDefinition synapseDefinition = null;
-            OperationPolicyDefinition ccPolicyDefinition = null;
-            OperationPolicySpecification policySpecification;
+            APIPolicyTemplate synapseDefinition = null;
+            APIPolicyTemplate ccPolicyDefinition = null;
+            APIPolicySpecification policySpecification;
             if (policySpecFileInputStream != null) {
                 jsonContent = RestApiPublisherUtils.readInputStream(policySpecFileInputStream, policySpecFileDetail);
 
@@ -1926,29 +1926,29 @@ public class ApisApiServiceImpl implements ApisApiService {
 
                 policySpecification = APIUtil.getValidatedOperationPolicySpecification(jsonContent);
 
-                OperationPolicyData operationPolicyData = OperationPoliciesApiServiceImplUtils
+                APIPolicyData operationPolicyData = OperationPoliciesApiServiceImplUtils
                         .prepareOperationPolicyData(policySpecification, organization, apiId);
 
                 if (synapsePolicyDefinitionFileInputStream != null) {
                     String synapsePolicyDefinition =
                             RestApiPublisherUtils.readInputStream(synapsePolicyDefinitionFileInputStream,
                                     synapsePolicyDefinitionFileDetail);
-                    synapseDefinition = new OperationPolicyDefinition();
+                    synapseDefinition = new APIPolicyTemplate();
                     OperationPoliciesApiServiceImplUtils
                             .preparePolicyDefinition(operationPolicyData, synapseDefinition,
-                                    synapsePolicyDefinition, OperationPolicyDefinition.GatewayType.Synapse);
+                                    synapsePolicyDefinition, APIPolicyTemplate.GatewayType.Synapse);
                 }
 
                 if (ccPolicyDefinitionFileInputStream != null) {
                     String choreoConnectPolicyDefinition = RestApiPublisherUtils
                             .readInputStream(ccPolicyDefinitionFileInputStream, ccPolicyDefinitionFileDetail);
-                    ccPolicyDefinition = new OperationPolicyDefinition();
+                    ccPolicyDefinition = new APIPolicyTemplate();
                     OperationPoliciesApiServiceImplUtils
                             .preparePolicyDefinition(operationPolicyData, ccPolicyDefinition,
-                                    choreoConnectPolicyDefinition, OperationPolicyDefinition.GatewayType.ChoreoConnect);
+                                    choreoConnectPolicyDefinition, APIPolicyTemplate.GatewayType.ChoreoConnect);
                 }
 
-                OperationPolicyData existingPolicy =
+                APIPolicyData existingPolicy =
                         apiProvider.getAPISpecificOperationPolicyByPolicyName(policySpecification.getName(),
                                 policySpecification.getVersion(), apiId, null, organization, false);
                 String policyID;
@@ -1979,6 +1979,19 @@ public class ApisApiServiceImpl implements ApisApiService {
         return null;
     }
 
+    @Override
+    public Response addAPISpecificPolicy(String apiId, InputStream policyDefinitionFileInputStream,
+                                         Attachment policyDefinitionFileDetail,
+                                         InputStream synapsePolicyTemplateFileInputStream,
+                                         Attachment synapsePolicyTemplateFileDetail,
+                                         InputStream ccPolicyTemplateFileInputStream,
+                                         Attachment ccPolicyTemplateFileDetail, MessageContext messageContext)
+            throws APIManagementException {
+        return addAPISpecificOperationPolicy(apiId, policyDefinitionFileInputStream, policyDefinitionFileDetail,
+                synapsePolicyTemplateFileInputStream, synapsePolicyTemplateFileDetail,
+                ccPolicyTemplateFileInputStream, ccPolicyTemplateFileDetail, messageContext);
+    }
+
     /**
      * Get the list of all API specific operation policies for a given API
      *
@@ -2002,7 +2015,7 @@ public class ApisApiServiceImpl implements ApisApiService {
 
             // Lightweight API specific operation policy includes the policy ID and the policy specification.
             // Since policy definition is bit bulky, we don't query the definition unnecessarily.
-            List<OperationPolicyData> sharedOperationPolicyLIst = apiProvider
+            List<APIPolicyData> sharedOperationPolicyLIst = apiProvider
                     .getAllAPISpecificOperationPolicies(apiId, organization);
             OperationPolicyDataListDTO policyListDTO = OperationPolicyMappingUtil
                     .fromOperationPolicyDataListToDTO(sharedOperationPolicyLIst, offset, limit);
@@ -2016,6 +2029,12 @@ public class ApisApiServiceImpl implements ApisApiService {
                     " operation policies", e, log);
         }
         return null;
+    }
+
+    @Override
+    public Response getAllAPISpecificPolicies(String apiId, Integer limit, Integer offset, String query,
+                                              MessageContext messageContext) throws APIManagementException {
+        return getAllAPISpecificOperationPolicies(apiId, limit, offset, query, messageContext);
     }
 
     /**
@@ -2037,7 +2056,7 @@ public class ApisApiServiceImpl implements ApisApiService {
             //validate whether api exists or not
             CommonUtils.validateAPIExistence(apiId);
 
-            OperationPolicyData existingPolicy =
+            APIPolicyData existingPolicy =
                     apiProvider.getAPISpecificOperationPolicyByPolicyId(operationPolicyId, apiId, organization, false);
             if (existingPolicy != null) {
                 OperationPolicyDataDTO policyDataDTO =
@@ -2065,6 +2084,11 @@ public class ApisApiServiceImpl implements ApisApiService {
         return null;
     }
 
+    @Override
+    public Response getPolicyForAPIByPolicyId(String apiId, String policyId, MessageContext messageContext) throws APIManagementException {
+        return getOperationPolicyForAPIByPolicyId(apiId, policyId, messageContext);
+    }
+
     /**
      * Download the operation policy specification and definition for a given API specific policy
      *
@@ -2084,7 +2108,7 @@ public class ApisApiServiceImpl implements ApisApiService {
             //validate if api exists
             CommonUtils.validateAPIExistence(apiId);
 
-            OperationPolicyData policyData =
+            APIPolicyData policyData =
                     apiProvider.getAPISpecificOperationPolicyByPolicyId(operationPolicyId, apiId, organization, true);
             if (policyData != null) {
                 File file = RestApiPublisherUtils.exportOperationPolicyData(policyData, ExportFormat.YAML.name());
@@ -2112,6 +2136,12 @@ public class ApisApiServiceImpl implements ApisApiService {
         return null;
     }
 
+    @Override
+    public Response getAPISpecificPolicyContentByPolicyId(String apiId, String policyId, MessageContext messageContext)
+            throws APIManagementException {
+        return getAPISpecificOperationPolicyContentByPolicyId(apiId, policyId, messageContext);
+    }
+
     /**
      * Delete API specific operation policy by providing the policy ID
      *
@@ -2130,7 +2160,7 @@ public class ApisApiServiceImpl implements ApisApiService {
             //validate if api exists
             CommonUtils.validateAPIExistence(apiId);
             String organization = RestApiUtil.getValidatedOrganization(messageContext);
-            OperationPolicyData existingPolicy =
+            APIPolicyData existingPolicy =
                     apiProvider.getAPISpecificOperationPolicyByPolicyId(operationPolicyId, apiId, organization, false);
             if (existingPolicy != null) {
                 apiProvider.deleteOperationPolicyById(operationPolicyId, organization);
@@ -2160,6 +2190,11 @@ public class ApisApiServiceImpl implements ApisApiService {
                     " operation policy with ID" + operationPolicyId + " for API " + apiId, e, log);
         }
         return null;
+    }
+
+    @Override
+    public Response deleteAPISpecificPolicyByPolicyId(String apiId, String policyId, MessageContext messageContext) throws APIManagementException {
+        return deleteAPISpecificOperationPolicyByPolicyId(apiId, policyId, messageContext);
     }
 
 

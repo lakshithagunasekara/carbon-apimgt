@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class OperationPolicySpecification {
+public class APIPolicySpecification {
 
     public enum PolicyCategory {
         Mediation,
@@ -38,7 +38,7 @@ public class OperationPolicySpecification {
     private List<String> applicableFlows = new ArrayList<>();
     private List<String> supportedGateways = new ArrayList<>();
     private List<String> supportedApiTypes = new ArrayList<>();
-    private List<OperationPolicySpecAttribute> policyAttributes = new ArrayList<>();
+    private List<APIPolicySpecAttribute> policyAttributes = new ArrayList<>();
 
     public String getName() {
 
@@ -110,12 +110,12 @@ public class OperationPolicySpecification {
         this.supportedApiTypes = supportedApiTypes;
     }
 
-    public List<OperationPolicySpecAttribute> getPolicyAttributes() {
+    public List<APIPolicySpecAttribute> getPolicyAttributes() {
 
         return policyAttributes;
     }
 
-    public void setPolicyAttributes(List<OperationPolicySpecAttribute> policyAttributes) {
+    public void setPolicyAttributes(List<APIPolicySpecAttribute> policyAttributes) {
 
         this.policyAttributes = policyAttributes;
     }
@@ -135,9 +135,9 @@ public class OperationPolicySpecification {
 
         if (this == o)
             return true;
-        if (!(o instanceof OperationPolicySpecification))
+        if (!(o instanceof APIPolicySpecification))
             return false;
-        OperationPolicySpecification policySpecObj = (OperationPolicySpecification) o;
+        APIPolicySpecification policySpecObj = (APIPolicySpecification) o;
         return category == policySpecObj.category && name.equals(policySpecObj.name)
                 && displayName.equals(policySpecObj.displayName) && Objects.equals(description, policySpecObj.description)
                 && applicableFlows.equals(policySpecObj.applicableFlows) && supportedGateways.equals(policySpecObj.supportedGateways)

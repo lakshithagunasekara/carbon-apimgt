@@ -23,9 +23,9 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
-import org.wso2.carbon.apimgt.api.model.OperationPolicy;
-import org.wso2.carbon.apimgt.api.model.OperationPolicyDefinition;
-import org.wso2.carbon.apimgt.api.model.OperationPolicySpecification;
+import org.wso2.carbon.apimgt.api.model.APIPolicySpecification;
+import org.wso2.carbon.apimgt.api.model.APIPolicyTemplate;
+import org.wso2.carbon.apimgt.api.model.Policy;
 import org.wso2.carbon.apimgt.api.model.URITemplate;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.importexport.ImportExportConstants;
@@ -94,18 +94,18 @@ public class SynapsePolicyAggregator {
         List<String> caseBody = new ArrayList<>();
         String policyDirectory = pathToAchieve + File.separator + ImportExportConstants.POLICIES_DIRECTORY;
 
-        List<OperationPolicy> operationPolicies = template.getOperationPolicies();
+        List<Policy> operationPolicies = template.getOperationPolicies();
         Collections.sort(operationPolicies, new OperationPolicyComparator());
-        for (OperationPolicy policy : operationPolicies) {
+        for (Policy policy : operationPolicies) {
             if (flow.equals(policy.getDirection())) {
                 Map<String, Object> policyParameters = policy.getParameters();
                 String policyFileName = APIUtil.getOperationPolicyFileName(policy.getPolicyName(),
                         policy.getPolicyVersion());
-                OperationPolicySpecification policySpecification = ImportUtils
+                APIPolicySpecification policySpecification = ImportUtils
                         .getOperationPolicySpecificationFromFile(policyDirectory, policyFileName);
                 if (policySpecification.getSupportedGateways()
                         .contains(APIConstants.OPERATION_POLICY_SUPPORTED_GATEWAY_SYNAPSE)) {
-                    OperationPolicyDefinition policyDefinition =
+                    APIPolicyTemplate policyDefinition =
                             APIUtil.getOperationPolicyDefinitionFromFile(policyDirectory, policyFileName,
                                     APIConstants.SYNAPSE_POLICY_DEFINITION_EXTENSION);
                     if (policyDefinition != null) {
